@@ -22,9 +22,11 @@ class TcpEvent implements Event {
         $this->eventObject = $eventObject;
         $this->handle = new $handle($args);
 
-        if(!($this->handle instanceof TcpEvent))
+        $reflection = new \ReflectionClass($this->handle);
+        $interfaces = $reflection->getInterfaces();
+        if(!isset($interfaces[ProtoServer::class]))
         {
-            throw new \Exception("$handle must be instance of ".ProtoServer::class);
+            throw new \Exception("$handle must implements ".ProtoServer::class);
         }
     }
 
