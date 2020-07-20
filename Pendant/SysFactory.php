@@ -65,9 +65,9 @@ class SysFactory
         return self::$taskNumber;
     }
 
-    public function regServerController($proto,$controllerName)
+    public function regServerController($proto,$controllerName, $protocol_type)
     {
-        self::$controller[$proto] = new $controllerName($proto);
+        self::$controller[$proto][$protocol_type] = new $controllerName($proto);
     }
 
     public function getServerController($proto)

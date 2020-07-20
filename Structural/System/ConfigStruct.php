@@ -11,6 +11,7 @@ class ConfigStruct{
     const S_IP = "ip";
     const S_PORT = "port";
     const S_TYPE = "type";
+    const S_PROTOCOL_TYPE = "protocol";
     const S_CONTROLLER = "controller";
     const S_CPU_AFFINITY = "open_cpu_affinity";
     const S_WORKER_NUM = "worker_num";

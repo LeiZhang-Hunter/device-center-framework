@@ -16,7 +16,7 @@ use Structural\System\EventStruct;
 use Structural\System\OnEventTcpStruct;
 use Structural\System\SwooleProtocol;
 
-class LogSentryProtocol implements ProtoServer{
+class MqttProxyProtocol implements ProtoServer{
 
     const protocol_type = SwooleProtocol::TCP_PROTOCOL;
 
