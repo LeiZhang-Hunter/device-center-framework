@@ -6,6 +6,7 @@
  * Time: 下午8:30
  */
 namespace Pendant\CallEvent;
+use Pendant\ProtoInterface\ProtoServer;
 use Structural\System\OnEventTcpStruct;
 use Structural\System\SwooleTcpStruct;
 class TcpEvent implements Event {
@@ -21,6 +22,10 @@ class TcpEvent implements Event {
         $this->eventObject = $eventObject;
         $this->handle = new $handle($args);
 
+        if(!($this->handle instanceof TcpEvent))
+        {
+            throw new \Exception("$handle must be instance of ".ProtoServer::class);
+        }
     }
 
     //进程启动前加载常用的类

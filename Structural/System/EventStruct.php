@@ -10,6 +10,7 @@ use Pendant\CallEvent\TcpEvent;
 use Pendant\Protocol\Tcp\LogSentryProtocol;
 use Pendant\Protocol\Tcp\MqttProxyProtocol;
 use Pendant\Protocol\Tcp\TcpProtocol;
+use Pendant\ProtoInterface\ProtoServer;
 
 class EventStruct{
 
@@ -34,8 +35,30 @@ class EventStruct{
     //获取回调实例
     public static function getCall($protocol, $protocol_type)
     {
-        return isset(self::$collect[$protocol][self::Call][$protocol_type]) ?
+        $call =  isset(self::$collect[$protocol][self::Call][$protocol_type]) ?
             self::$collect[$protocol][self::Call][$protocol_type] : null;
+        if(!$call)
+        {
+            throw new \Exception("protocol[$protocol]->call[$protocol_type] is not exist");
+        }
+
+        if(!class_exists($call))
+        {
+            throw new \Exception("protocol[$protocol]->call[$protocol_type] is not class");
+        }
+
+        return $call;
+    }
+
+    //添加回调事件，这样可以支持自定义协议
+    public static function addCall($protocol, $protocol_type, $protocol_class_name)
+    {
+        if($protocol != SwooleProtocol::TCP_PROTOCOL)
+        {
+            throw new \Exception("protocol:$protocol is not support");
+        }
+        self::$collect[$protocol][self::Call][$protocol_type] = $protocol_class_name;
+        return true;
     }
 
     //获取事件
@@ -50,6 +73,10 @@ class EventStruct{
         if(is_object($object))
         {
             $eventName = self::getEvent($protocol);
+            if(!$eventName)
+            {
+                throw new \Exception("protocol[$protocol][$protocol_type] is not exist");
+            }
             $bindReactorObject = new $eventName($object,self::getCall($protocol, $protocol_type));
             $bindReactorObject->call();
             unset($bindReactorObject);
