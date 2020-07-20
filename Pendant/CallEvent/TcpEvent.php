@@ -22,6 +22,7 @@ class TcpEvent implements Event {
         $this->eventObject = $eventObject;
         $this->handle = new $handle($args);
 
+        //通过反射校验接口正确性
         $reflection = new \ReflectionClass($this->handle);
         $interfaces = $reflection->getInterfaces();
         if(!isset($interfaces[ProtoServer::class]))
