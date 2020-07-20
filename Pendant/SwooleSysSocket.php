@@ -113,10 +113,60 @@ class SwooleSysSocket{
     //启动服务
     public function run()
     {
+        //加载初始化环境通过php.ini检查这个环境到底是测试环境还是说是一个正式环境
+        FrameworkEnv::init();
+        //加载配置文件中的配置
+        $config_instance = SysConfig::getInstance();
+        $this->config = $config_instance->getSysConfig();
+        //使用命令行解析工具去解析命令
+        FrameworkEnv::parseCmd();
         if(is_callable(self::$beforeHook))
         {
-            call_user_func_array(self::$beforeHook,[]);
+            call_user_func_array(self::$beforeHook,[$this]);
         }
+
+        if(!isset($this->config[ConfigStruct::SERVER]))
+        {
+            throw new \Exception("config (".ConfigStruct::SERVER.") is not exist;stack:(SwooleSysSocket::run)");
+        }
+
+        //获取监控的服务列表，并且加入监控
+        $server_list = $this->config[ConfigStruct::SERVER];
+        if(!is_array($server_list))
+        {
+            throw new \Exception("config (".ConfigStruct::SERVER.") must be array;stack:(SwooleSysSocket::run)");
+        }
+
+        foreach ($server_list as $server)
+        {
+            if(!isset($server[ConfigStruct::S_IP]))
+            {
+                throw new \Exception("config (".ConfigStruct::SERVER."=>".ConfigStruct::S_IP.") is not exist;
+                stack:(SwooleSysSocket::run)");
+            }
+
+            if(!isset($server[ConfigStruct::S_PORT]))
+            {
+                throw new \Exception("config (".ConfigStruct::SERVER."=>".ConfigStruct::S_PORT.") is not exist;
+                stack:(SwooleSysSocket::run)");
+            }
+
+            if(!isset($server[ConfigStruct::S_TYPE]))
+            {
+                throw new \Exception("config (".ConfigStruct::SERVER."=>".ConfigStruct::S_TYPE.") is not exist;
+                stack:(SwooleSysSocket::run)");
+            }
+
+            if(!isset($server[ConfigStruct::S_CONTROLLER]))
+            {
+                throw new \Exception("config (".ConfigStruct::SERVER."=>".ConfigStruct::S_CONTROLLER.") is not exist;
+                stack:(SwooleSysSocket::run)");
+            }
+
+            $this->addMonitor($server[ConfigStruct::S_IP], $server[ConfigStruct::S_PORT], $server[ConfigStruct::S_TYPE],
+                $server[ConfigStruct::S_CONTROLLER]);
+        }
+
         $sys_factory = new SysFactory();
         //移出主要的server信息
         $server = array_shift($this->monitor_list);
@@ -134,9 +184,12 @@ class SwooleSysSocket{
             EventStruct::bindEvent($monitor_type,$service_object);
         }
         EventStruct::bindEvent($server[ConfigStruct::S_TYPE],self::$swoole_server);
-        $sys_factory->setTaskNumber($this->config->getSysConfig()[ConfigStruct::S_TASK_WORKER_NUM]);
+        if(isset($this->config[ConfigStruct::S_TASK_WORKER_NUM]))
+        {
+            $sys_factory->setTaskNumber($this->config[ConfigStruct::S_TASK_WORKER_NUM]);
+        }
         //加入配置文件
-        self::$swoole_server->set($this->config->getSysConfig());
+        self::$swoole_server->set($this->config);
         //运行程序
         self::$swoole_server->start();
     }

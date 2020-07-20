@@ -35,7 +35,10 @@ class SysConfig{
         {
             self::$sysConfig[$config] = include_once CONFIG_DIR."/".$config.".php";
         }
-
+        if(!is_array(self::$sysConfig[$config]))
+        {
+            trigger_error("project_dir () is not exist;stack:(SysConfig::getSysConfig)", E_USER_ERROR);
+        }
         if(self::$finishHook && is_callable(self::$finishHook))
         {
             //执行程序
