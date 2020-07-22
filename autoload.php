@@ -9,11 +9,9 @@
 //定义常量
 define("__ROOT__",__DIR__);
 
+include_once "Pendant/NameSpaceClass.php";
+
 
 //自动加载
-spl_autoload_register(function ($var){
-    $dir = realpath(__ROOT__."/".str_replace("\\","/",$var).".php");
-    if(is_file($dir)) {
-        include_once $dir;
-    }
-});
+NameSpaceClass::autoload();
+

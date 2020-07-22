@@ -13,6 +13,7 @@ use Pendant\SwooleSysSocket;
 use Pendant\SysFactory;
 use Structural\System\ConfigStruct;
 use Structural\System\EventStruct;
+use Structural\System\MQTTProxyProtocolStruct;
 use Structural\System\OnEventTcpStruct;
 use Structural\System\SwooleProtocol;
 
@@ -55,7 +56,6 @@ class MqttProxyProtocol implements ProtoServer{
 
     public function __construct()
     {
-
         $this->controller = SysFactory::getInstance()->getServerController(self::protocol_type);
         $this->logger = SwooleSysSocket::getInstance()->getLogger();
     }
@@ -151,9 +151,8 @@ class MqttProxyProtocol implements ProtoServer{
 
         $leftLen = $dataLen;//没开始解包之前剩余的数据就是收到包的长度
         $packData = $data;//初始包就是接收的整个包
-        $readLen = 0;//读过的包长是0
 
-        $protocol = new \Structural\System\MQTTProxyProtocol();
+        $protocol = new \Structural\System\MQTTProxyProtocolStruct();
 
         //如果说剩余的长度大于0
         while($leftLen > 0)
@@ -169,30 +168,62 @@ class MqttProxyProtocol implements ProtoServer{
 
             //解析协议的类型
             $protocol->type = unpack("C",$data[0])[1];
+            $leftLen -= 1;
 
             //解析mqtt消息的类型
             $protocol->mqtt_type = unpack("C",$data[1])[1];
+            $leftLen -= 1;
 
             //mqtt服务器的错误码
             $protocol->message_no = unpack("C",$data[2])[1];
+            $leftLen -= 1;
 
             //解析载荷的长度，算法跟mqtt中的算法一致
             $remain_length = $this->remainLengthDecode($data[3]);
             $protocol->remain_length = $remain_length;
+            $leftLen -= 1;
 
-            //校验client_id 长度的合法性
+            //校验client_id 长度的合法性 半包或者是一个错误的包,继续放入缓冲区中，当超过一定长度之后直接清空掉
+            if($remain_length > $leftLen)
+            {
+                return false;
+            }
 
             //获取到客户端id
             $protocol->client_id = substr($data, 3, $remain_length);
+            $leftLen -= $remain_length;
 
             $payload_len = unpack("C", $data[3 + $remain_length])[1];
+            //半包或者是错误的包
+            if($payload_len > $leftLen)
+            {
+                return false;
+            }
             $payload = json_decode(substr($data, 4 + $remain_length, $payload_len) , 1);
             $protocol->payload = $payload;
 
+            var_dump($this->controller);
             //拆包代理协议
+            switch ($protocol->mqtt_type)
+            {
+                case MQTTProxyProtocolStruct::OnConnect:
+                    break;
+
+                case MQTTProxyProtocolStruct::OnSubscribe:
+                    break;
+
+                case MQTTProxyProtocolStruct::OnUnSubscribe:
+                    break;
+
+                case MQTTProxyProtocolStruct::OnPublish:
+                    break;
+
+                case MQTTProxyProtocolStruct::OnDISCONNECT:
+                    break;
+            }
         }
 
-        return;
+        return true;
     }
 
     public function bindWorkerStop()

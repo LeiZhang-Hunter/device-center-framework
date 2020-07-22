@@ -7,7 +7,7 @@
  */
 namespace Structural\System;
 
-class MQTTProxyProtocol{
+class MQTTProxyProtocolStruct{
     const Type = "type";
     //协议类型
     const MQTT_proxy = 0;
@@ -23,4 +23,14 @@ class MQTTProxyProtocol{
     public $client_id;
 
     public $payload;
+
+    const OnConnect = 0;
+
+    const OnSubscribe = 1;
+
+    const OnUnSubscribe = 2;
+
+    const OnPublish = 3;
+
+    const OnDISCONNECT = 4;
 }
