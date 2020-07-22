@@ -106,6 +106,31 @@ class MqttProxyProtocol implements ProtoServer{
         return true;
     }
 
+    //解析字节，将字节变为长度
+    private function remainLengthDecode($data)
+    {
+        $data = unpack("C",$data)[1];
+        $multiplier = 1;
+        $value = 0;
+        do{
+            $data++;
+            $value += ($data AND 127) * $multiplier;
+            $multiplier *= 128;
+        }while(($data & 128) != 0);
+        return $data;
+    }
+
+    //调试函数用来输出16进制
+    public function printCommand($command)
+    {
+        $str = '';
+        $length = strlen($command);
+        for ($i = 0; $i < $length; $i++) {
+            $str .= ("0x" . dechex(ord((($command[$i]))))." ");
+        }
+        echo $str."\n";
+        return $str;
+    }
 
 
     public function bindReceive(...$args)
@@ -128,104 +153,43 @@ class MqttProxyProtocol implements ProtoServer{
         $packData = $data;//初始包就是接收的整个包
         $readLen = 0;//读过的包长是0
 
+        $protocol = new \Structural\System\MQTTProxyProtocol();
+
         //如果说剩余的长度大于0
         while($leftLen > 0)
         {
 
             //包不完整出现了半包直接放入到缓冲区中
-            if($leftLen < 8)
+            if($leftLen < 5)
             {
                 $this->buffer[$fd] = $packData;
                 $this->logger->trace(Logger::LOG_WARING,self::class,"bindReceive","[".self::class."->"."bindReceive"."] recv bytes is small;len:$dataLen");
                 return true;
             }
 
-            //解析包头算出整个包的长度
-            $packLenArray = unpack(self::UNPACK_HEADERLEN,substr($packData,0,8));
-            if(!$packLenArray)
-            {
-                //关闭掉这个描述符,解析包的长度错误
-                $this->closeClient($fd);
-                return false;
-            }
+            //解析协议的类型
+            $protocol->type = unpack("C",$data[0])[1];
 
-            //计算出整个包的长度
-            $packLen = $packLenArray["length"];
+            //解析mqtt消息的类型
+            $protocol->mqtt_type = unpack("C",$data[1])[1];
 
-            //检查包的长度,包长超了最大包长 或者包的长度小于最小包长 就会认为这个包已经坏掉了
-            if($packLen>self::MAX_PACK_HEADER && $packLen<self::MIN_PACK_HEADER)
-            {
-                //关闭掉这个描述符,解析包的长度错误
-                $this->closeClient($fd);
-                return false;
-            }
+            //mqtt服务器的错误码
+            $protocol->message_no = unpack("C",$data[2])[1];
 
-            //半包直接放入缓冲区中
-            if($leftLen < $packLen)
-            {
-                $this->buffer[$fd] = $packData;
-                return true;
-            }
+            //解析载荷的长度，算法跟mqtt中的算法一致
+            $remain_length = $this->remainLengthDecode($data[3]);
+            $protocol->remain_length = $remain_length;
 
+            //校验client_id 长度的合法性
 
-            //截取这个包的包体 (版本号 模数 服务号这些信息)
-            $packHeaderBody = unpack(self::PACK_HEADER_STRUCT,substr($packData,8,8));
+            //获取到客户端id
+            $protocol->client_id = substr($data, 3, $remain_length);
 
-            //解析包体长度如果说错误那么就关闭掉链接
-            if(!$packHeaderBody)
-            {
-                $this->closeClient($fd);
-                return false;
-            }
+            $payload_len = unpack("C", $data[3 + $remain_length])[1];
+            $payload = json_decode(substr($data, 4 + $remain_length, $payload_len) , 1);
+            $protocol->payload = $payload;
 
-            $version = $packHeaderBody["version"];//版本号
-            $magic = $packHeaderBody["magic"];//模数
-            $serverId = $packHeaderBody["server"];//服务号
-
-            //进行模数校验
-            if($magic != self::MAGIC)
-            {
-                $this->closeClient($fd);
-                return false;
-            }
-
-            //获取这个包体的长度
-            $body_len_struct = unpack(self::UNPACK_HEADERLEN,substr($packData,16,8));
-            if(!$body_len_struct)
-            {
-                $this->closeClient($fd);
-                return false;
-            }
-
-            //解析得到了这个包体的长度
-            $body_len = $body_len_struct["length"];
-
-
-            $body = substr($data,24,$body_len-1);
-
-            //解析body，去掉尾部的\0
-            if(strlen($body) == $body_len-1)
-            {
-                //解析buffer数据
-                $buffer = json_decode($body,1);
-
-                if($buffer) {
-                    //将buffer下方到task
-                    $task_worker_id = SysFactory::getInstance()->getTaskWorkerNumber();
-                    //获取客户端的ip并且放入结果集
-                    $fdInfo = SwooleSysSocket::$swoole_server->getClientInfo($fd);
-                    $buffer["client_ip"] = $fdInfo["remote_ip"];
-                    SwooleSysSocket::$swoole_server->task($buffer, $fd % $task_worker_id);
-                }
-            }
-
-
-            $readLen+=$packLen;
-
-            //除掉一个包的长度因为一个包已经解包完成了
-            $leftLen = $dataLen - $readLen;
-
-            $packData = substr($data,$readLen,$leftLen);
+            //拆包代理协议
         }
 
         return;
