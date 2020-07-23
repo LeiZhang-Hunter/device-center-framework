@@ -61,7 +61,8 @@ class MqttProxyProtocol implements ProtoServer{
 
     public function __construct()
     {
-        $this->controller = SysFactory::getInstance()->getServerController(self::protocol_type);
+        $controller_collect = SysFactory::getInstance()->getServerController(self::protocol_type);
+        $this->controller = $controller_collect[\Structural\System\ProtocolTypeStruct::MQTT_PROXY_PROTOCOL];
         $this->logger = SwooleSysSocket::getInstance()->getLogger();
     }
 
