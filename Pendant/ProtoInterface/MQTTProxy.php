@@ -7,14 +7,16 @@
  */
 namespace Pendant\ProtoInterface;
 
+use Structural\System\MQTTProxyProtocolStruct;
+
 interface MQTTProxy{
-    public function onConnect();
+    public function onConnect(MQTTProxyProtocolStruct $protocol);
 
-    public function onDisConnect();
+    public function onDisConnect(MQTTProxyProtocolStruct $protocol);
 
-    public function onSubscribe();
+    public function onSubscribe(MQTTProxyProtocolStruct $protocol);
 
-    public function onUnSubscribe();
+    public function onUnSubscribe(MQTTProxyProtocolStruct $protocol);
 
-    public function onPublish();
+    public function onPublish(MQTTProxyProtocolStruct $protocol);
 }

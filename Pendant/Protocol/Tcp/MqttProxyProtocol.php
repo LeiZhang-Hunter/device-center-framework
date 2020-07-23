@@ -8,6 +8,8 @@
  */
 namespace Pendant\Protocol\Tcp;
 use Library\Logger\Logger;
+use Pendant\MQTTProxyHandle;
+use Pendant\ProtoInterface\MQTTProxy;
 use Pendant\ProtoInterface\ProtoServer;
 use Pendant\SwooleSysSocket;
 use Pendant\SysFactory;
@@ -44,6 +46,9 @@ class MqttProxyProtocol implements ProtoServer{
     public static $data;
 
     //控制器
+    /**
+     * @var MQTTProxy
+     */
     private $controller;
 
     /**
@@ -202,23 +207,27 @@ class MqttProxyProtocol implements ProtoServer{
             $payload = json_decode(substr($data, 4 + $remain_length, $payload_len) , 1);
             $protocol->payload = $payload;
 
-            var_dump($this->controller);
             //拆包代理协议
             switch ($protocol->mqtt_type)
             {
                 case MQTTProxyProtocolStruct::OnConnect:
+                    $this->controller->onConnect($protocol);
                     break;
 
                 case MQTTProxyProtocolStruct::OnSubscribe:
+                    $this->controller->onSubscribe($protocol);
                     break;
 
                 case MQTTProxyProtocolStruct::OnUnSubscribe:
+                    $this->controller->onUnSubscribe($protocol);
                     break;
 
                 case MQTTProxyProtocolStruct::OnPublish:
+                    $this->controller->onPublish($protocol);
                     break;
 
                 case MQTTProxyProtocolStruct::OnDISCONNECT:
+                    $this->controller->onDisConnect($protocol);
                     break;
             }
         }
