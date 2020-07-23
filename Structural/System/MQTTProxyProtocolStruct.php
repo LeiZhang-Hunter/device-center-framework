@@ -26,11 +26,19 @@ class MQTTProxyProtocolStruct{
 
     const OnConnect = 0;
 
-    const OnSubscribe = 1;
+    const OnConnectMessage = 1;
 
-    const OnUnSubscribe = 2;
+    const OnSubscribe = 2;
 
-    const OnPublish = 3;
+    const OnSubscribeMessage = 3;
 
-    const OnDISCONNECT = 4;
+    const OnUnSubscribe = 4;
+
+    const OnUnSubscribeMessage = 5;
+
+    const OnPublish = 6;
+
+    const OnPublishMessage = 7;
+
+    const OnDISCONNECT = 8;
 }
