@@ -36,7 +36,7 @@ abstract class MQTTProxyHandle implements MQTTProxy
     }
 
     //响应代理
-    public function responseProxy(MQTTProxyProtocolStruct $protocol)
+    public function randResponseProxy(MQTTProxyProtocolStruct $protocol)
     {
         $mTool = MQTTProxyTool::getInstance();
         $data = $mTool->pack($protocol);

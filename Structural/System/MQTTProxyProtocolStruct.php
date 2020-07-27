@@ -57,6 +57,9 @@ class MQTTProxyProtocolStruct{
 
     public $payload;
 
+    //描述符,存放一个收到请求的描述符
+    public $fd;
+
     const OnConnect = 0;
 
     const OnConnectMessage = 1;

@@ -28,7 +28,6 @@ class Tool{
         $multiplier = 1;
         $value = 0;
         do{
-            $data++;
             $value += ($data AND 127) * $multiplier;
             $multiplier *= 128;
         }while(($data & 128) != 0);
@@ -41,7 +40,7 @@ class Tool{
         $data = "";
         do{
             $digit = $length % 128;
-            $length = $length / 128;
+            $length = intval($length / 128);
             if($length > 0)
             {
                 $digit = $digit | 0x80;
@@ -51,5 +50,17 @@ class Tool{
         }while($length > 0);
 
         return $data;
+    }
+
+    //调试函数用来输出16进制
+    public static function printCommand($command)
+    {
+        $str = '';
+        $length = strlen($command);
+        for ($i = 0; $i < $length; $i++) {
+            $str .= ("0x" . dechex(ord((($command[$i]))))." ");
+        }
+        echo $str."\n";
+        return $str;
     }
 }

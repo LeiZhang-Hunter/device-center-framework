@@ -113,18 +113,6 @@ class MqttProxyProtocol implements ProtoServer{
         return true;
     }
 
-    //调试函数用来输出16进制
-    public function printCommand($command)
-    {
-        $str = '';
-        $length = strlen($command);
-        for ($i = 0; $i < $length; $i++) {
-            $str .= ("0x" . dechex(ord((($command[$i]))))." ");
-        }
-        echo $str."\n";
-        return $str;
-    }
-
 
     public function bindReceive(...$args)
     {
@@ -173,7 +161,6 @@ class MqttProxyProtocol implements ProtoServer{
 
             //解析载荷的长度，算法跟mqtt中的算法一致
             $remain_length = Tool::remainLengthDecode($data[3]);
-            $protocol->remain_length = $remain_length;
             $leftLen -= 1;
 
             //校验client_id 长度的合法性 半包或者是一个错误的包,继续放入缓冲区中，当超过一定长度之后直接清空掉
@@ -183,19 +170,21 @@ class MqttProxyProtocol implements ProtoServer{
             }
 
             //获取到客户端id
-            $protocol->client_id = substr($data, 3, $remain_length);
+            $protocol->client_id = substr($data, 4, $remain_length);
             $leftLen -= $remain_length;
 
-            $payload_len = unpack("C", $data[3 + $remain_length])[1];
+            $payload_len = unpack("C", $data[4 + $remain_length])[1];
             //半包或者是错误的包
             if($payload_len > $leftLen)
             {
                 return false;
             }
-            $payload = json_decode(substr($data, 4 + $remain_length, $payload_len) , 1);
+            $protocol->remain_length = $payload_len;
+            $payload = json_decode(substr($data, 4 + $remain_length + 1, $payload_len) , 1);
             $protocol->payload = $payload;
 
             //校验CRC
+            $protocol->fd = $fd;
 
             //拆包代理协议
             switch ($protocol->mqtt_type)
