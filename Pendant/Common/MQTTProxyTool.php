@@ -29,7 +29,8 @@ class MQTTProxyTool{
         $this->server = $server;
     }
 
-    public function send(MQTTProxyProtocolStruct $protocol)
+    //打包加压数据
+    public function pack(MQTTProxyProtocolStruct $protocol)
     {
         //根据协议类型返回数据
         $data = "";
