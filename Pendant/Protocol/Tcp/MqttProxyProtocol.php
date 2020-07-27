@@ -8,6 +8,7 @@
  */
 namespace Pendant\Protocol\Tcp;
 use Library\Logger\Logger;
+use Pendant\Common\Tool;
 use Pendant\MQTTProxyHandle;
 use Pendant\ProtoInterface\MQTTProxy;
 use Pendant\ProtoInterface\ProtoServer;
@@ -112,20 +113,6 @@ class MqttProxyProtocol implements ProtoServer{
         return true;
     }
 
-    //解析字节，将字节变为长度
-    private function remainLengthDecode($data)
-    {
-        $data = unpack("C",$data)[1];
-        $multiplier = 1;
-        $value = 0;
-        do{
-            $data++;
-            $value += ($data AND 127) * $multiplier;
-            $multiplier *= 128;
-        }while(($data & 128) != 0);
-        return $data;
-    }
-
     //调试函数用来输出16进制
     public function printCommand($command)
     {
@@ -185,7 +172,7 @@ class MqttProxyProtocol implements ProtoServer{
             $leftLen -= 1;
 
             //解析载荷的长度，算法跟mqtt中的算法一致
-            $remain_length = $this->remainLengthDecode($data[3]);
+            $remain_length = Tool::remainLengthDecode($data[3]);
             $protocol->remain_length = $remain_length;
             $leftLen -= 1;
 
@@ -207,6 +194,8 @@ class MqttProxyProtocol implements ProtoServer{
             }
             $payload = json_decode(substr($data, 4 + $remain_length, $payload_len) , 1);
             $protocol->payload = $payload;
+
+            //校验CRC
 
             //拆包代理协议
             switch ($protocol->mqtt_type)

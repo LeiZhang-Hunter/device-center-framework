@@ -31,6 +31,18 @@ class MQTTProxyTool{
 
     public function send(MQTTProxyProtocolStruct $protocol)
     {
-        return true;
+        //根据协议类型返回数据
+        $data = "";
+        $data .= pack("C", $protocol->type);
+        $data .= pack("C", $protocol->mqtt_type);
+        $data .= pack("C", $protocol->message_no);
+        $data_len = Tool::remainLengthDecode(strlen($protocol->client_id));
+        $data .= pack("C", $data_len);
+        $data .= pack("C", $protocol->client_id);
+        $payload_len = Tool::remainLengthEncode(strlen($protocol->payload));
+        $data .= pack("C", $payload_len);
+        $data .= $protocol->payload;
+        $data .= CRC16::CheckCRC16($data);
+        return $data;
     }
 }
