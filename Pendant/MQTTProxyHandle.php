@@ -39,13 +39,13 @@ abstract class MQTTProxyHandle implements MQTTProxy
     public function responseProxy(MQTTProxyProtocolStruct $protocol)
     {
         $mTool = MQTTProxyTool::getInstance();
-        $mTool->pack($protocol);
+        $data = $mTool->pack($protocol);
         if(self::$pool)
         {
             $key = array_rand(self::$pool);
             if(self::$server)
             {
-                self::$server->send(self::$pool[$key]);
+                self::$server->send(self::$pool[$key], $data);
             }else{
                 return false;
             }
