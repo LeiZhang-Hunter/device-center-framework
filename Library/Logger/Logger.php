@@ -21,12 +21,17 @@ class Logger{
 
     public function __construct()
     {
-        $config = SwooleSysSocket::getInstance()->config->getSysConfig();
-        $this->log_dir = $config[ConfigStruct::SEN_LOG_FILE];
+        $config = SwooleSysSocket::getInstance()->config;
+        $this->log_dir = isset($config[ConfigStruct::SEN_LOG_FILE]) ? $config[ConfigStruct::SEN_LOG_FILE] : "";
     }
 
     public function trace($level,$class,$method,$log,$file = __FILE__,$line = __LINE__)
     {
+        if(!$this->log_dir)
+        {
+            trigger_error(E_USER_WARNING, "please set ".ConfigStruct::SEN_LOG_FILE ." in configure");
+            return false;
+        }
         $date = date("Y-m-d H:i:s",time());
 
         $msg = "[$date] $level $class->$method --$log--\n";
@@ -35,6 +40,7 @@ class Logger{
 
         $file_name = $this->log_dir."trace_".$dateExt.".log";
 
+        echo $msg;
         //放入文件
         return file_put_contents($file_name,$msg,FILE_APPEND);
     }

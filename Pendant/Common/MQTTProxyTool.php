@@ -43,7 +43,6 @@ class MQTTProxyTool{
         $data .= $protocol->client_id;
         $payload_len = Tool::remainLengthEncode(strlen($protocol->payload));
 
-        Tool::printCommand($payload_len);
         $data .= $payload_len;
         $data .= $protocol->payload;
         $data .= CRC16::CheckCRC16($data);

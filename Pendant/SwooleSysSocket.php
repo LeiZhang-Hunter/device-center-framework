@@ -128,6 +128,11 @@ class SwooleSysSocket{
             call_user_func_array(self::$beforeHook,[$this]);
         }
 
+        if(!$this->getLogger())
+        {
+            $this->setLogger(new Logger());
+        }
+
         if(!isset($this->config[ConfigStruct::SERVER]))
         {
             throw new \Exception("config (".ConfigStruct::SERVER.") is not exist;stack:(SwooleSysSocket::run)");

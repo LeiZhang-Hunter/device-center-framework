@@ -8,6 +8,7 @@
  */
 namespace Pendant\Protocol\Tcp;
 use Library\Logger\Logger;
+use Pendant\Common\CRC16;
 use Pendant\Common\Tool;
 use Pendant\MQTTProxyHandle;
 use Pendant\ProtoInterface\MQTTProxy;
@@ -138,53 +139,89 @@ class MqttProxyProtocol implements ProtoServer{
         //如果说剩余的长度大于0
         while($leftLen > 0)
         {
+            $read_len = 0;
 
             //包不完整出现了半包直接放入到缓冲区中
             if($leftLen < 5)
             {
                 $this->buffer[$fd] = $packData;
-                $this->logger->trace(Logger::LOG_WARING,self::class,"bindReceive","[".self::class."->"."bindReceive"."] recv bytes is small;len:$dataLen");
+                $this->logger->trace(Logger::LOG_WARING,self::class,"bindReceive",
+                    "[".self::class."->"."bindReceive"."] recv bytes is small;len:$dataLen;file:".__FILE__."line:".
+                __LINE__);
                 return true;
             }
 
             //解析协议的类型
             $protocol->type = unpack("C",$data[0])[1];
             $leftLen -= 1;
+            $read_len += 1;
 
             //解析mqtt消息的类型
             $protocol->mqtt_type = unpack("C",$data[1])[1];
             $leftLen -= 1;
+            $read_len += 1;
 
             //mqtt服务器的错误码
             $protocol->message_no = unpack("C",$data[2])[1];
             $leftLen -= 1;
+            $read_len += 1;
 
             //解析载荷的长度，算法跟mqtt中的算法一致
             $remain_length = Tool::remainLengthDecode($data[3]);
             $leftLen -= 1;
+            $read_len += 1;
 
             //校验client_id 长度的合法性 半包或者是一个错误的包,继续放入缓冲区中，当超过一定长度之后直接清空掉
             if($remain_length > $leftLen)
             {
+                $this->logger->trace(Logger::LOG_WARING,self::class,"bindReceive",
+                    "[".self::class."->"."bindReceive"."] client id length($remain_length) > leftLen($leftLen);file:"
+                    .__FILE__."line:".
+                    __LINE__);
                 return false;
             }
 
             //获取到客户端id
             $protocol->client_id = substr($data, 4, $remain_length);
             $leftLen -= $remain_length;
+            $read_len += $remain_length;
 
             $payload_len = unpack("C", $data[4 + $remain_length])[1];
             //半包或者是错误的包
             if($payload_len > $leftLen)
             {
+                $this->logger->trace(Logger::LOG_WARING,self::class,"bindReceive",
+                    "[".self::class."->"."bindReceive"."] client id payload_length($payload_len) > leftLen($leftLen);file:"
+                    .__FILE__."line:".
+                    __LINE__);
                 return false;
             }
+            $leftLen -= 1;
+            $read_len += 1;
+
             $protocol->remain_length = $payload_len;
             $payload = json_decode(substr($data, 4 + $remain_length + 1, $payload_len) , 1);
             $protocol->payload = $payload;
+            $leftLen -= $payload_len;
+            $read_len += $payload_len;
 
             //校验CRC
             $protocol->fd = $fd;
+
+            //如果说包错误则不要解析了
+            $check_crc = CRC16::CheckCRC16(substr($data, 0, $read_len), $read_len);
+            $crc = substr($data, $read_len, 2);
+            $leftLen -= 2;
+            $read_len += 2;
+
+            if($check_crc != $crc)
+            {
+                $this->logger->trace(Logger::LOG_WARING,self::class,"bindReceive",
+                    "[".self::class."->"."bindReceive"."] crc error;file:"
+                    .__FILE__."line:".
+                    __LINE__);
+                return false;
+            }
 
             //拆包代理协议
             switch ($protocol->mqtt_type)
@@ -209,6 +246,8 @@ class MqttProxyProtocol implements ProtoServer{
                     $this->controller->onDisConnect($protocol);
                     break;
             }
+
+            $data = substr($data, 0, $read_len);
         }
 
         return true;
