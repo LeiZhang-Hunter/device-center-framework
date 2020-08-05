@@ -29,7 +29,7 @@ class Logger{
     {
         if(!$this->log_dir)
         {
-            trigger_error(E_USER_WARNING, "please set ".ConfigStruct::SEN_LOG_FILE ." in configure");
+            trigger_error("please set ".ConfigStruct::SEN_LOG_FILE ." in configure", E_USER_WARNING);
             return false;
         }
         $date = date("Y-m-d H:i:s",time());
