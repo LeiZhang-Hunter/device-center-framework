@@ -145,6 +145,8 @@ class MqttProxyProtocol implements ProtoServer{
             if($leftLen < 5)
             {
                 $this->buffer[$fd] = $packData;
+
+                var_dump(strlen($this->buffer[$fd]));
                 $this->logger->trace(Logger::LOG_WARING,self::class,"bindReceive",
                     "[".self::class."->"."bindReceive"."] recv bytes is small;len:$dataLen;file:".__FILE__."line:".
                 __LINE__);
@@ -270,7 +272,12 @@ class MqttProxyProtocol implements ProtoServer{
 
     public function bindClose(...$args)
     {
-
+        $server = ($args[0]);
+        $fd = $args[1];
+        if(isset($this->buffer[$fd]))
+        {
+            unset($this->buffer[$fd]);
+        }
     }
 
 }
