@@ -43,7 +43,7 @@ class MqttProxyProtocol implements ProtoServer{
 
     const MAGIC = 103;
 
-    private $buffer;
+    private $buffer = [];
 
     public static $data;
 
@@ -127,12 +127,13 @@ class MqttProxyProtocol implements ProtoServer{
             $data = $this->buffer[$fd].$data;
         }
 
+        //清空掉缓冲区
+        $this->buffer[$fd] = "";
+
         //计算出整个包的长度
         $dataLen = strlen($data);
 
-
         $leftLen = $dataLen;//没开始解包之前剩余的数据就是收到包的长度
-        $packData = $data;//初始包就是接收的整个包
 
         $protocol = new \Structural\System\MQTTProxyProtocolStruct();
 
@@ -144,9 +145,7 @@ class MqttProxyProtocol implements ProtoServer{
             //包不完整出现了半包直接放入到缓冲区中
             if($leftLen < 5)
             {
-                $this->buffer[$fd] = $packData;
-
-                var_dump(strlen($this->buffer[$fd]));
+                $this->buffer[$fd] = substr($data,0 , $leftLen);
                 $this->logger->trace(Logger::LOG_WARING,self::class,"bindReceive",
                     "[".self::class."->"."bindReceive"."] recv bytes is small;len:$dataLen;file:".__FILE__."line:".
                 __LINE__);
@@ -176,6 +175,7 @@ class MqttProxyProtocol implements ProtoServer{
             //校验client_id 长度的合法性 半包或者是一个错误的包,继续放入缓冲区中，当超过一定长度之后直接清空掉
             if($remain_length > $leftLen)
             {
+                $this->buffer[$fd] = substr($data,0 , $leftLen);
                 $this->logger->trace(Logger::LOG_WARING,self::class,"bindReceive",
                     "[".self::class."->"."bindReceive"."] client id length($remain_length) > leftLen($leftLen);file:"
                     .__FILE__."line:".
@@ -192,6 +192,7 @@ class MqttProxyProtocol implements ProtoServer{
             //半包或者是错误的包
             if($payload_len > $leftLen)
             {
+                $this->buffer[$fd] = substr($data,0 , $leftLen);
                 $this->logger->trace(Logger::LOG_WARING,self::class,"bindReceive",
                     "[".self::class."->"."bindReceive"."] client id payload_length($payload_len) > leftLen($leftLen);file:"
                     .__FILE__."line:".
@@ -218,12 +219,15 @@ class MqttProxyProtocol implements ProtoServer{
 
             if($check_crc != $crc)
             {
+                $this->buffer[$fd] = substr($data,0 , $leftLen);
                 $this->logger->trace(Logger::LOG_WARING,self::class,"bindReceive",
                     "[".self::class."->"."bindReceive"."] crc error;file:"
                     .__FILE__."line:".
                     __LINE__);
                 return false;
             }
+
+
 
             //拆包代理协议
             switch ($protocol->mqtt_type)
@@ -248,9 +252,9 @@ class MqttProxyProtocol implements ProtoServer{
                     $this->controller->onDisConnect($protocol);
                     break;
             }
-
-            $data = substr($data, 0, $read_len);
+             $data = substr($data, $read_len);
         }
+
 
         return true;
     }
