@@ -120,7 +120,6 @@ class MqttProxyProtocol implements ProtoServer{
         $data = $args[3];
         $fd = $args[1];
         $server = $args[0];
-
         //如果说在套接字缓冲区里有数据
         if(isset($this->buffer[$fd]))
         {
