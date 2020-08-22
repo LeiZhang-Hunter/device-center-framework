@@ -12,7 +12,8 @@ use Library\Logger\Logger;
 use Vendor\DB;
 use Vendor\ES;
 
-class NginxLog implements ResolveProtocol {
+class NginxLog implements ResolveProtocol
+{
     /**
      * @var Logger
      */
@@ -28,14 +29,14 @@ class NginxLog implements ResolveProtocol {
      */
     private static $es;
 
-    public static function ModuleInit($logger,$db,$es)
+    public static function ModuleInit($logger, $db, $es)
     {
         self::$logger = $logger;
         self::$db = $db;
         self::$es = $es;
     }
 
-    public static function parse($log,$sentry_type,$split="")
+    public static function parse($log, $sentry_type, $split = "")
     {
         var_dump($log);
         var_dump($sentry_type);

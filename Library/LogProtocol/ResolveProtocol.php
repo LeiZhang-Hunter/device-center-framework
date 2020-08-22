@@ -5,9 +5,11 @@
  * Date: 19-10-31
  * Time: 下午7:41
  */
-namespace Library\LogProtocol;
-interface ResolveProtocol{
 
-    public static function parse($protocolText,$sentry_type,$split = "");
+namespace Library\LogProtocol;
+interface ResolveProtocol
+{
+
+    public static function parse($protocolText, $sentry_type, $split = "");
 
 }

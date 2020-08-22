@@ -5,9 +5,11 @@
  * Date: 2018-6-18 0018
  * Time: 11:57
  */
+
 namespace Pendant\Common;
 
-class CRC16{
+class CRC16
+{
     public static $auchCRCHi = [
         0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81,
         0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0,
@@ -49,27 +51,28 @@ class CRC16{
         0x44, 0x84, 0x85, 0x45, 0x87, 0x47, 0x46, 0x86, 0x82, 0x42, 0x43, 0x83, 0x41, 0x81, 0x80,
         0x40
     ];
+
     public function print_hex($hexData)
     {
-        printf("0x%x\r\n",$hexData);
+        printf("0x%x\r\n", $hexData);
     }
 
     public function print_bin($hexData)
     {
-        printf("%b\r\n",$hexData);
+        printf("%b\r\n", $hexData);
     }
 
-    public static function CheckCRC16($pMsg ,$u16_DataLen=0)
+    public static function CheckCRC16($pMsg, $u16_DataLen = 0)
     {
-        $length        =($u16_DataLen<=0?strlen($pMsg):$u16_DataLen);
-        $uchCRCHi    =0xFF;
-        $uchCRCLo    =0xFF;
-        $uIndex        =0;
-        for ($i=0;$i<$length;$i++){
-            $uIndex        =$uchCRCLo ^ ord(substr($pMsg,$i,1));
-            $uchCRCLo    =$uchCRCHi ^ self::$auchCRCHi[$uIndex];
-            $uchCRCHi    =self::$auchCRCLo[$uIndex] ;
+        $length = ($u16_DataLen <= 0 ? strlen($pMsg) : $u16_DataLen);
+        $uchCRCHi = 0xFF;
+        $uchCRCLo = 0xFF;
+        $uIndex = 0;
+        for ($i = 0; $i < $length; $i++) {
+            $uIndex = $uchCRCLo ^ ord(substr($pMsg, $i, 1));
+            $uchCRCLo = $uchCRCHi ^ self::$auchCRCHi[$uIndex];
+            $uchCRCHi = self::$auchCRCLo[$uIndex];
         }
-        return(chr($uchCRCLo).chr($uchCRCHi));
+        return (chr($uchCRCLo) . chr($uchCRCHi));
     }
 }

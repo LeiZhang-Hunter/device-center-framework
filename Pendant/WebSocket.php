@@ -53,38 +53,36 @@ class WebSocket
     {
         $len = $masks = $data = $decoded = null;
         $buffer = $received;
-        if(!$buffer)
-        {
+        if (!$buffer) {
             return [
-                "data"=>"",
-                "buffer"=>$buffer
+                "data" => "",
+                "buffer" => $buffer
             ];
         }
         $len = ord($buffer[1]) & 127;
 
         $position = 0;
         if ($len === 126) {
-            $position = 8+$len;
+            $position = 8 + $len;
             $masks = substr($buffer, 4, 4);
-            $data = substr($buffer, 8,$len);
+            $data = substr($buffer, 8, $len);
         } else {
             if ($len === 127) {
-                $position = 14+$len;
+                $position = 14 + $len;
                 $masks = substr($buffer, 10, 4);
-                $data = substr($buffer, 14,$len);
+                $data = substr($buffer, 14, $len);
             } else {
-                $position = 6+$len;
+                $position = 6 + $len;
                 $masks = substr($buffer, 2, 4);
-                $data = substr($buffer, 6,$len);
+                $data = substr($buffer, 6, $len);
             }
         }
 
         //这时一个不完整的包
-        if(strlen($received) < $position)
-        {
+        if (strlen($received) < $position) {
             return [
-                "data"=>"",
-                "buffer"=>$buffer
+                "data" => "",
+                "buffer" => $buffer
             ];
         }
 
@@ -93,11 +91,11 @@ class WebSocket
         }
 
         //返回剩余的待处理数据
-        $last_buffer = substr($received,$position);
+        $last_buffer = substr($received, $position);
 
         return [
-            "data"=>$decoded,
-            "buffer"=>$last_buffer
+            "data" => $decoded,
+            "buffer" => $last_buffer
         ];
     }
 
@@ -151,7 +149,7 @@ class WebSocket
     {
 //        echo "---------------------------\n";
 //        var_dump($data);
-        $responseMsg = "recevied data len : ".strlen($data)." $data";
+        $responseMsg = "recevied data len : " . strlen($data) . " $data";
         return $responseMsg;
     }
 

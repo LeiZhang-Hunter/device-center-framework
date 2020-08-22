@@ -5,11 +5,15 @@
  * Date: 19-10-31
  * Time: 下午8:30
  */
+
 namespace Pendant\CallEvent;
+
 use Pendant\ProtoInterface\ProtoServer;
 use Structural\System\OnEventTcpStruct;
 use Structural\System\SwooleTcpStruct;
-class TcpEvent implements Event {
+
+class TcpEvent implements Event
+{
 
     //事件对象
     private $eventObject;
@@ -17,7 +21,7 @@ class TcpEvent implements Event {
     //处理程序举兵
     private $handle;
 
-    public function __construct($eventObject,$handle,...$args)
+    public function __construct($eventObject, $handle, ...$args)
     {
         $this->eventObject = $eventObject;
         $this->handle = new $handle($args);
@@ -25,9 +29,8 @@ class TcpEvent implements Event {
         //通过反射校验接口正确性
         $reflection = new \ReflectionClass($this->handle);
         $interfaces = $reflection->getInterfaces();
-        if(!isset($interfaces[ProtoServer::class]))
-        {
-            throw new \Exception("$handle must implements ".ProtoServer::class);
+        if (!isset($interfaces[ProtoServer::class])) {
+            throw new \Exception("$handle must implements " . ProtoServer::class);
         }
     }
 
@@ -36,7 +39,7 @@ class TcpEvent implements Event {
     {
         if ($this->eventObject instanceof \swoole_server) {
             //在工作进程启动的时候加载实例
-            $this->eventObject->on(SwooleTcpStruct::TCP_WorkerStart, [$this->handle,OnEventTcpStruct::ON_bindWorkerStart]);
+            $this->eventObject->on(SwooleTcpStruct::TCP_WorkerStart, [$this->handle, OnEventTcpStruct::ON_bindWorkerStart]);
         }
     }
 
@@ -45,7 +48,7 @@ class TcpEvent implements Event {
     public function onReceive()
     {
         if ($this->eventObject instanceof \swoole_server) {
-            $this->eventObject->on(SwooleTcpStruct::TCP_Receive, [$this->handle,OnEventTcpStruct::ON_bindReceive]);
+            $this->eventObject->on(SwooleTcpStruct::TCP_Receive, [$this->handle, OnEventTcpStruct::ON_bindReceive]);
         }
     }
 
@@ -53,7 +56,7 @@ class TcpEvent implements Event {
     public function onTask()
     {
         if ($this->eventObject instanceof \swoole_server) {
-            $this->eventObject->on(SwooleTcpStruct::TCP_Task, [$this->handle,OnEventTcpStruct::ON_bindTask]);
+            $this->eventObject->on(SwooleTcpStruct::TCP_Task, [$this->handle, OnEventTcpStruct::ON_bindTask]);
         }
     }
 
@@ -61,10 +64,9 @@ class TcpEvent implements Event {
     public function onFinish()
     {
         if ($this->eventObject instanceof \swoole_server) {
-            $this->eventObject->on(SwooleTcpStruct::TCP_Finish, [$this->handle,OnEventTcpStruct::ON_bindFinish]);
+            $this->eventObject->on(SwooleTcpStruct::TCP_Finish, [$this->handle, OnEventTcpStruct::ON_bindFinish]);
         }
     }
-
 
 
     //关闭套接字的回调函数

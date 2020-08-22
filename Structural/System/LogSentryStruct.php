@@ -5,9 +5,11 @@
  * Date: 19-10-31
  * Time: 下午9:34
  */
+
 namespace Structural\System;
 
-class LogSentryStruct{
+class LogSentryStruct
+{
     const Monitor_type = "monitor_type";
     const Buf_body = "buf_body";
     const File_name = "file_name";

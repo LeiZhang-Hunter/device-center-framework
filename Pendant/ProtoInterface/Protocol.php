@@ -5,7 +5,9 @@
  * Date: 19-9-18
  * Time: 下午7:54
  */
+
 namespace Pendant\ProtoInterface;
-interface Protocol{
+interface Protocol
+{
     public static function parse($text);
 }

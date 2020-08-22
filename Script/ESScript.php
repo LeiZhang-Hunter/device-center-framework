@@ -6,7 +6,7 @@
  * Date: 2018/12/18
  * Time: 16:53
  */
-define("ENV","develop");
+define("ENV", "develop");
 include_once "../autoload.php";
 
 $es = new \Vendor\ES(\Pendant\SysConfig::getInstance()->getSysConfig("es"));
@@ -16,52 +16,52 @@ $es->client->delete();
 $this->db = new \Vendor\DB(\Pendant\SysConfig::getInstance()->getSysConfig("db"));
 $r = $this->db->delete("sys_syslog");
 
-$result = $es->createIndex("syslog","syslog",[
-    "id"=>[
+$result = $es->createIndex("syslog", "syslog", [
+    "id" => [
         "type" => "long",
         "store" => false,
     ],
-    "sentry_type"=>[
+    "sentry_type" => [
         "type" => "integer",
         "store" => false
     ],
-    "sentry_file"=>[
+    "sentry_file" => [
         "type" => "keyword",
         "store" => false
     ],
-    "body_token"=>[
+    "body_token" => [
         "type" => "keyword",
         "store" => false,
     ],
-    "client_ip"=>[
+    "client_ip" => [
         "type" => "keyword",
         "store" => false
     ],
-    "happen_time"=>[
+    "happen_time" => [
         "type" => "integer",
         "store" => false
     ],
-    "body"=>[
+    "body" => [
         "type" => "keyword",
         "store" => true
     ],
-    "php_error_level"=>[
+    "php_error_level" => [
         "type" => "integer",
         "store" => false
     ],
-    "created_time"=>[
+    "created_time" => [
         "type" => "integer",
         "store" => false
     ],
-    "updated_time"=>[
+    "updated_time" => [
         "type" => "integer",
         "store" => false
     ],
-    "state"=>[
+    "state" => [
         "type" => "integer",
         "store" => false
     ],
-    "type"=>[
+    "type" => [
         "type" => "integer",
         "store" => false
     ],

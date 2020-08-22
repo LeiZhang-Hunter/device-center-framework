@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: zhanglei
@@ -17,18 +18,17 @@ class NameSpaceClass
     public static function autoload()
     {
         //自动加载
-        spl_autoload_register(function ($var){
-            $collect = explode("\\",$var);
+        spl_autoload_register(function ($var) {
+            $collect = explode("\\", $var);
             $namespace = array_shift($collect);
-            if(isset(self::$namespace[$namespace]))
-            {
-                $dir = (self::$namespace[$namespace]."/".implode("\\",$collect).".php");
-                if(is_file($dir)) {
+            if (isset(self::$namespace[$namespace])) {
+                $dir = (self::$namespace[$namespace] . "/" . implode("\\", $collect) . ".php");
+                if (is_file($dir)) {
                     include_once $dir;
                 }
-            }else{
-                $dir = realpath(__ROOT__."/".str_replace("\\","/",$var).".php");
-                if(is_file($dir)) {
+            } else {
+                $dir = realpath(__ROOT__ . "/" . str_replace("\\", "/", $var) . ".php");
+                if (is_file($dir)) {
                     include_once $dir;
                 }
             }

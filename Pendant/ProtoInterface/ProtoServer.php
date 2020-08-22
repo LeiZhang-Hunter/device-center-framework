@@ -5,8 +5,10 @@
  * Date: 19-9-18
  * Time: 下午7:23
  */
+
 namespace Pendant\ProtoInterface;
-interface ProtoServer{
+interface ProtoServer
+{
 
     public function bindWorkerStart(...$args);
 

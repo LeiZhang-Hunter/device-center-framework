@@ -5,11 +5,13 @@
  * Date: 20-7-23
  * Time: 下午12:40
  */
+
 namespace Pendant\Common;
 
 use Structural\System\MQTTProxyProtocolStruct;
 
-class MQTTProxyTool{
+class MQTTProxyTool
+{
 
     private static $instance;
 
@@ -17,8 +19,7 @@ class MQTTProxyTool{
 
     public static function getInstance()
     {
-        if(!self::$instance)
-        {
+        if (!self::$instance) {
             self::$instance = new self();
         }
         return self::$instance;

@@ -5,6 +5,7 @@
  * Date: 20-7-23
  * Time: 上午9:49
  */
+
 namespace Pendant;
 
 use Pendant\Common\MQTTProxyTool;
@@ -40,16 +41,14 @@ abstract class MQTTProxyHandle implements MQTTProxy
     {
         $mTool = MQTTProxyTool::getInstance();
         $data = $mTool->pack($protocol);
-        if(self::$pool)
-        {
+        if (self::$pool) {
             $key = array_rand(self::$pool);
-            if(self::$server)
-            {
+            if (self::$server) {
                 self::$server->send(self::$pool[$key], $data);
-            }else{
+            } else {
                 return false;
             }
-        }else{
+        } else {
             return false;
         }
     }

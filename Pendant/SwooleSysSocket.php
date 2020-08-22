@@ -6,6 +6,7 @@
  * Date: 2018/12/16
  * Time: 14:39
  */
+
 namespace Pendant;
 
 use Library\Logger\Logger;
@@ -13,7 +14,8 @@ use Structural\System\ConfigStruct;
 use Structural\System\EventStruct;
 use Structural\System\SwooleProtocol;
 
-class SwooleSysSocket{
+class SwooleSysSocket
+{
 
     /**
      * @var SwooleSysSocket
@@ -79,25 +81,25 @@ class SwooleSysSocket{
      * @param $controller
      * @param $protocol_type
      */
-    public function addMonitor($ip,$port,$type,$controller, $protocol_type)
+    public function addMonitor($ip, $port, $type, $controller, $protocol_type)
     {
         $this->monitor_list[] = [
-            "ip"=>$ip,
-            "port"=>$port,
-            "type"=>$type,
-            "controller"=>$controller,
-            "protocol"=>$protocol_type
+            "ip" => $ip,
+            "port" => $port,
+            "type" => $type,
+            "controller" => $controller,
+            "protocol" => $protocol_type
         ];
     }
 
     public function regBeforeHook($beforeFunction)
     {
-        self::$beforeHook = \Closure::bind($beforeFunction,$this);
+        self::$beforeHook = \Closure::bind($beforeFunction, $this);
     }
 
     public function regFinishHook($endFunction)
     {
-        self::$finishHook = \Closure::bind($endFunction,$this);
+        self::$finishHook = \Closure::bind($endFunction, $this);
     }
 
     /**
@@ -106,8 +108,7 @@ class SwooleSysSocket{
      */
     public static function getInstance()
     {
-        if(!self::$instance)
-        {
+        if (!self::$instance) {
             self::$instance = new self();
         }
         return self::$instance;
@@ -123,60 +124,50 @@ class SwooleSysSocket{
         $this->config = $config_instance->getSysConfig();
         //使用命令行解析工具去解析命令
         FrameworkEnv::parseCmd();
-        if(is_callable(self::$beforeHook))
-        {
-            call_user_func_array(self::$beforeHook,[$this]);
+        if (is_callable(self::$beforeHook)) {
+            call_user_func_array(self::$beforeHook, [$this]);
         }
 
-        if(!$this->getLogger())
-        {
+        if (!$this->getLogger()) {
             $this->setLogger(new Logger());
         }
 
-        if(!isset($this->config[ConfigStruct::SERVER]))
-        {
-            throw new \Exception("config (".ConfigStruct::SERVER.") is not exist;stack:(SwooleSysSocket::run)");
+        if (!isset($this->config[ConfigStruct::SERVER])) {
+            throw new \Exception("config (" . ConfigStruct::SERVER . ") is not exist;stack:(SwooleSysSocket::run)");
         }
 
         //获取监控的服务列表，并且加入监控
         $server_list = $this->config[ConfigStruct::SERVER];
-        if(!is_array($server_list))
-        {
-            throw new \Exception("config (".ConfigStruct::SERVER.") must be array;stack:(SwooleSysSocket::run)");
+        if (!is_array($server_list)) {
+            throw new \Exception("config (" . ConfigStruct::SERVER . ") must be array;stack:(SwooleSysSocket::run)");
         }
 
-        foreach ($server_list as $server)
-        {
-            if(!isset($server[ConfigStruct::S_IP]))
-            {
-                throw new \Exception("config (".ConfigStruct::SERVER."=>".ConfigStruct::S_IP.") is not exist;
+        foreach ($server_list as $server) {
+            if (!isset($server[ConfigStruct::S_IP])) {
+                throw new \Exception("config (" . ConfigStruct::SERVER . "=>" . ConfigStruct::S_IP . ") is not exist;
                 stack:(SwooleSysSocket::run)");
             }
 
-            if(!isset($server[ConfigStruct::S_PORT]))
-            {
-                throw new \Exception("config (".ConfigStruct::SERVER."=>".ConfigStruct::S_PORT.") is not exist;
+            if (!isset($server[ConfigStruct::S_PORT])) {
+                throw new \Exception("config (" . ConfigStruct::SERVER . "=>" . ConfigStruct::S_PORT . ") is not exist;
                 stack:(SwooleSysSocket::run)");
             }
 
             //服务的类型
-            if(!isset($server[ConfigStruct::S_TYPE]))
-            {
-                throw new \Exception("config (".ConfigStruct::SERVER."=>".ConfigStruct::S_TYPE.") is not exist;
+            if (!isset($server[ConfigStruct::S_TYPE])) {
+                throw new \Exception("config (" . ConfigStruct::SERVER . "=>" . ConfigStruct::S_TYPE . ") is not exist;
                 stack:(SwooleSysSocket::run)");
             }
 
             //回调的控制器
-            if(!isset($server[ConfigStruct::S_CONTROLLER]))
-            {
-                throw new \Exception("config (".ConfigStruct::SERVER."=>".ConfigStruct::S_CONTROLLER.") is not exist;
+            if (!isset($server[ConfigStruct::S_CONTROLLER])) {
+                throw new \Exception("config (" . ConfigStruct::SERVER . "=>" . ConfigStruct::S_CONTROLLER . ") is not exist;
                 stack:(SwooleSysSocket::run)");
             }
 
             //支持解析的协议类型
-            if(!isset($server[ConfigStruct::S_PROTOCOL_TYPE]))
-            {
-                throw new \Exception("config (".ConfigStruct::SERVER."=>".ConfigStruct::S_PROTOCOL_TYPE.") is not exist;
+            if (!isset($server[ConfigStruct::S_PROTOCOL_TYPE])) {
+                throw new \Exception("config (" . ConfigStruct::SERVER . "=>" . ConfigStruct::S_PROTOCOL_TYPE . ") is not exist;
                 stack:(SwooleSysSocket::run)");
             }
 
@@ -188,25 +179,24 @@ class SwooleSysSocket{
         //移出主要的server信息
         $server = array_shift($this->monitor_list);
         //监控服务
-        self::$swoole_server = new \swoole_server($server[ConfigStruct::S_IP],$server[ConfigStruct::S_PORT],SwooleProtocol::Mode, SwooleProtocol::TCP_PROTOCOL);
+        self::$swoole_server = new \swoole_server($server[ConfigStruct::S_IP], $server[ConfigStruct::S_PORT], SwooleProtocol::Mode, SwooleProtocol::TCP_PROTOCOL);
         //注册服务 ip 端口 和协议类型 进入服务
-        $sys_factory->regServerController($server[ConfigStruct::S_TYPE],$server[ConfigStruct::S_CONTROLLER],
+        $sys_factory->regServerController($server[ConfigStruct::S_TYPE], $server[ConfigStruct::S_CONTROLLER],
             $server[ConfigStruct::S_PROTOCOL_TYPE]);
         //绑定注册的服务
-        EventStruct::bindEvent($server[ConfigStruct::S_TYPE],self::$swoole_server, $server[ConfigStruct::S_PROTOCOL_TYPE]);
+        EventStruct::bindEvent($server[ConfigStruct::S_TYPE], self::$swoole_server, $server[ConfigStruct::S_PROTOCOL_TYPE]);
 
         //监控其余的端口
         foreach ($this->monitor_list as $monitorInfo) {
             $monitor_type = $monitorInfo[ConfigStruct::S_TYPE];
             $controllerName = $monitorInfo[ConfigStruct::S_CONTROLLER];
             //注册接收的server
-            $sys_factory->regServerController($monitor_type,$controllerName, $monitorInfo[ConfigStruct::S_PROTOCOL_TYPE]);
+            $sys_factory->regServerController($monitor_type, $controllerName, $monitorInfo[ConfigStruct::S_PROTOCOL_TYPE]);
             //绑定处理事件
-            $service_object = self::$swoole_server->addListener($monitorInfo[ConfigStruct::S_IP],$monitorInfo[ConfigStruct::S_PORT],$monitorInfo[ConfigStruct::S_TYPE]);
-            EventStruct::bindEvent($monitor_type,$service_object, $monitorInfo[ConfigStruct::S_PROTOCOL_TYPE]);
+            $service_object = self::$swoole_server->addListener($monitorInfo[ConfigStruct::S_IP], $monitorInfo[ConfigStruct::S_PORT], $monitorInfo[ConfigStruct::S_TYPE]);
+            EventStruct::bindEvent($monitor_type, $service_object, $monitorInfo[ConfigStruct::S_PROTOCOL_TYPE]);
         }
-        if(isset($this->config[ConfigStruct::S_TASK_WORKER_NUM]))
-        {
+        if (isset($this->config[ConfigStruct::S_TASK_WORKER_NUM])) {
             $sys_factory->setTaskNumber($this->config[ConfigStruct::S_TASK_WORKER_NUM]);
         }
         //加入配置文件

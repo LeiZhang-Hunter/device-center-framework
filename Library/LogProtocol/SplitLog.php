@@ -15,7 +15,8 @@ use Vendor\DB;
 use Vendor\ES;
 
 //根据传入的切割符来切割的类
-class SplitLog implements ResolveProtocol {
+class SplitLog implements ResolveProtocol
+{
 
     /**
      * @var Logger
@@ -32,7 +33,7 @@ class SplitLog implements ResolveProtocol {
      */
     private static $es;
 
-    public static function ModuleInit($logger,$db,$es)
+    public static function ModuleInit($logger, $db, $es)
     {
         self::$logger = $logger;
         self::$db = $db;
@@ -40,31 +41,28 @@ class SplitLog implements ResolveProtocol {
     }
 
     //参数解析
-    public static function parse($bufferInfo,$sentry_type,$split="")
+    public static function parse($bufferInfo, $sentry_type, $split = "")
     {
 
         $buffer = $bufferInfo[LogSentryStruct::Buf_body];
-        $data = array_filter(explode($split,$buffer));
+        $data = array_filter(explode($split, $buffer));
 
-        if(!$data)
-        {
-            self::$logger->trace(Logger::LOG_WARING,self::class,"onReceive","buffer type [$sentry_type] error");
+        if (!$data) {
+            self::$logger->trace(Logger::LOG_WARING, self::class, "onReceive", "buffer type [$sentry_type] error");
             return false;
         }
 
         $monitor_file = $bufferInfo[LogSentryStruct::Monitor_log_dir];
 
-        if(!$monitor_file)
-        {
-            self::$logger->trace(Logger::LOG_WARING,self::class,"onReceive","log file [$monitor_file] error");
+        if (!$monitor_file) {
+            self::$logger->trace(Logger::LOG_WARING, self::class, "onReceive", "log file [$monitor_file] error");
             return false;
         }
 
 
         //循环内容
-        foreach ($data as $dataUnit)
-        {
-            if($dataUnit) {
+        foreach ($data as $dataUnit) {
+            if ($dataUnit) {
 
                 $logUnit = [];
                 $logUnit[LogDbStruct::Sentry_type] = $sentry_type;
@@ -79,22 +77,20 @@ class SplitLog implements ResolveProtocol {
                 $logUnit[LogDbStruct::Type] = 0;//级别为php日志
 
                 //确确实实没有这个日志记录
-                if(($res = self::$db->insert("sys_syslog",$logUnit)) !== false){
+                if (($res = self::$db->insert("sys_syslog", $logUnit)) !== false) {
                     //获取最后插入的id 然后放入es 中这里是原子操作不需要担心安全问题
                     $insertId = self::$db->getLastInsertId();
                     $logUnit["sys_id"] = (int)$insertId;
                     //存入es
-                    if(($res = self::$es->client->index($logUnit,$insertId)))
-                    {
+                    if (($res = self::$es->client->index($logUnit, $insertId))) {
                         //如果说es写入失败记录下日志
-                        if(isset($res["error"]))
-                        {
+                        if (isset($res["error"])) {
                             $msg = isset($res["error"]["reason"]) ? $res["error"]["reason"] : "";
-                            self::$logger->trace(Logger::LOG_ERROR,"PHPErrorLog","parse","elasticSearch error:".$msg.";data:".json_encode($logUnit));
+                            self::$logger->trace(Logger::LOG_ERROR, "PHPErrorLog", "parse", "elasticSearch error:" . $msg . ";data:" . json_encode($logUnit));
                         }
                     }
-                }else{
-                    self::$logger->trace(Logger::LOG_WARING,"PHPErrorLog","parse","mysql error:".self::$db->getLastError().";data:".json_encode($logUnit));
+                } else {
+                    self::$logger->trace(Logger::LOG_WARING, "PHPErrorLog", "parse", "mysql error:" . self::$db->getLastError() . ";data:" . json_encode($logUnit));
                 }
 
             }

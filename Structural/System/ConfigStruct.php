@@ -5,8 +5,10 @@
  * Date: 19-10-31
  * Time: 下午7:48
  */
+
 namespace Structural\System;
-class ConfigStruct{
+class ConfigStruct
+{
     const SERVER = "server";
     const S_IP = "ip";
     const S_PORT = "port";

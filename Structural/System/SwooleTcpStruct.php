@@ -5,9 +5,11 @@
  * Date: 19-10-31
  * Time: 下午7:58
  */
+
 namespace Structural\System;
 
-class SwooleTcpStruct{
+class SwooleTcpStruct
+{
     const TCP_WorkerStart = "WorkerStart";
     const TCP_Receive = "Receive";
     const TCP_Task = "Task";

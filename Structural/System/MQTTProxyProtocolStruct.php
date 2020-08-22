@@ -5,6 +5,7 @@
  * Date: 20-7-21
  * Time: 下午12:24
  */
+
 namespace Structural\System;
 
 /**
@@ -39,8 +40,8 @@ namespace Structural\System;
  * |          CRC校验
  * |-------------------------------
  */
-
-class MQTTProxyProtocolStruct{
+class MQTTProxyProtocolStruct
+{
     const Type = "type";
     //协议类型
     const MQTT_proxy = 0;

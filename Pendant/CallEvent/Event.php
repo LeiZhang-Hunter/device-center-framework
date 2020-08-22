@@ -5,8 +5,10 @@
  * Date: 19-10-31
  * Time: 下午8:38
  */
+
 namespace Pendant\CallEvent;
 
-interface Event{
+interface Event
+{
     public function call();
 }

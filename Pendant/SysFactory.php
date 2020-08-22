@@ -50,7 +50,7 @@ class SysFactory
     }
 
     //注入处理实例
-    public function regSwooleServer($proto,$protoHandle)
+    public function regSwooleServer($proto, $protoHandle)
     {
         self::$protoHandle[$proto] = new $protoHandle;
     }
@@ -65,7 +65,7 @@ class SysFactory
         return self::$taskNumber;
     }
 
-    public function regServerController($proto,$controllerName, $protocol_type)
+    public function regServerController($proto, $controllerName, $protocol_type)
     {
         self::$controller[$proto][$protocol_type] = new $controllerName($proto);
     }

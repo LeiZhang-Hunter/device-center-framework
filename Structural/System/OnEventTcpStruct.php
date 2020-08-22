@@ -5,9 +5,11 @@
  * Date: 19-10-31
  * Time: 下午8:05
  */
+
 namespace Structural\System;
 
-class OnEventTcpStruct{
+class OnEventTcpStruct
+{
     const ON_bindWorkerStart = "bindWorkerStart";
     const ON_bindReceive = "bindReceive";
     const ON_bindTask = "bindTask";
