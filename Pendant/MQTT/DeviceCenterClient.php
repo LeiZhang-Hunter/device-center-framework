@@ -26,7 +26,7 @@ class DeviceCenterClient
 
     private function __construct()
     {
-        $this->socket = new Swoole\Client(SWOOLE_SOCK_TCP);
+        $this->socket = new \Swoole\Client(SWOOLE_SOCK_TCP);
         $this->tool = MQTTProxyTool::getInstance();
     }
 
@@ -40,7 +40,7 @@ class DeviceCenterClient
         $this->port = $port;
     }
 
-    public static function __getInstance()
+    public static function getInstance()
     {
         if (!self::$instance) {
             self::$instance = new self();
@@ -57,7 +57,7 @@ class DeviceCenterClient
     }
 
     //对设备中心推送消息
-    public function publish($topic, $message, $timeOut)
+    public function publish($clientId, $topic, $message, $timeOut = 5)
     {
         $res = $this->socket->connect($this->ip, $this->port);
 
@@ -66,14 +66,14 @@ class DeviceCenterClient
         }
 
         $protocol = new MQTTProxyProtocolStruct();
-        $topic = $protocol->payload["topic"];
         $message_id = $this->messageId;
         $qos_level = $this->qosLevel;
         $protocol->type = MQTTProxyProtocolStruct::DEVICE_CENTER_CLIENT;
         $protocol->mqtt_type = MQTTProxyProtocolStruct::OnSubscribeMessage;
+        $protocol->client_id = $clientId;
         $protocol->message_no = 0;
         $protocol->payload = json_encode([
-            "topic"=>$topic,
+            "topic" => $topic,
             "message_id" => $message_id,
             "qos_level" => $qos_level,
             "message" => $message

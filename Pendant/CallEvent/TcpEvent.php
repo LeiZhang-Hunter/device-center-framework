@@ -18,7 +18,7 @@ class TcpEvent implements Event
     //事件对象
     private $eventObject;
 
-    //处理程序举兵
+    //处理程序句柄
     private $handle;
 
     public function __construct($eventObject, $handle, ...$args)

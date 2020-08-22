@@ -12,7 +12,8 @@ namespace Pendant\Protocol\Tcp;
 use Library\Logger\Logger;
 use Pendant\Common\CRC16;
 use Pendant\Common\Tool;
-use Pendant\MQTTProxyHandle;
+use Pendant\MQTT\DeviceCenterHandle;
+use Pendant\MQTT\MQTTProxyHandle;
 use Pendant\ProtoInterface\MQTTProxy;
 use Pendant\ProtoInterface\ProtoServer;
 use Pendant\SwooleSysSocket;
@@ -61,12 +62,16 @@ class MqttProxyProtocol implements ProtoServer
      */
     private $logger;
 
+    /**
+     * 设备处理中心
+     * @var DeviceCenterHandle
+     */
+    private $deviceCenter;
+
 
     public function __construct()
     {
-        $controller_collect = SysFactory::getInstance()->getServerController(self::protocol_type);
-        $this->controller = $controller_collect[\Structural\System\ProtocolTypeStruct::MQTT_PROXY_PROTOCOL];
-        $this->logger = SwooleSysSocket::getInstance()->getLogger();
+
     }
 
 
@@ -74,34 +79,16 @@ class MqttProxyProtocol implements ProtoServer
     {
         $server = $args[0];
         $worker_id = $args[1];
-        if ($worker_id >= $server->setting[ConfigStruct::S_WORKER_NUM]) {
-            $callfunc = [$this->controller, EventStruct::OnWorkerStart];
-            if (is_callable($callfunc)) {
-
-                //从配置文件中获取实例的静态
-                call_user_func_array($callfunc, [$server]);
-            } else {
-                $this->logger->trace(Logger::LOG_ERROR, self::class, OnEventTcpStruct::ON_bindWorkerStart, "[controller[" . self::protocol_type . "]->" . EventStruct::OnWorkerStart . "] is not callable");
-            }
-        }
-
+        $controller_collect = SysFactory::getInstance()->getServerController(self::protocol_type);
+        $this->controller = $controller_collect[\Structural\System\ProtocolTypeStruct::MQTT_PROXY_PROTOCOL];
+        $this->logger = SwooleSysSocket::getInstance()->getLogger();
+        $this->deviceCenter = new DeviceCenterHandle();
+        //初始化任务进程，用来对业务套接字进行处理
+        $this->deviceCenter->onTaskInit($server, $this->logger);
     }
 
     public function bindTask(...$args)
     {
-        $server = $args[0];
-        $task_id = $args[1];
-        $from_id = $args[2];
-        $data = $args[3];
-
-        $callfunc = [$this->controller, EventStruct::OnReceive];
-        if (is_callable($callfunc)) {
-
-            //从配置文件中获取实例的静态
-            call_user_func_array($callfunc, [$data]);
-        } else {
-            $this->logger->trace(Logger::LOG_ERROR, self::class, OnEventTcpStruct::ON_bindTask, "[controller[" . self::protocol_type . "]->" . EventStruct::OnReceive . "] is not callable");
-        }
 
     }
 
@@ -220,6 +207,11 @@ class MqttProxyProtocol implements ProtoServer
                 return false;
             }
 
+            if ($protocol->type == MQTTProxyProtocolStruct::DEVICE_CENTER_CLIENT) {
+                $protocol->fd = $fd;
+                $this->deviceCenter->dispatcher($protocol);
+                continue;
+            }
 
             //拆包代理协议
             switch ($protocol->mqtt_type) {
@@ -257,7 +249,12 @@ class MqttProxyProtocol implements ProtoServer
 
     public function bindPipeMessage(...$args)
     {
+        $server = $args[0];
+        $task_id = $args[1];
+        $data = $args[2];
 
+
+        $this->deviceCenter->onTaskHandle($server, $data);
     }
 
     public function bindFinish(...$args)

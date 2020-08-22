@@ -60,6 +60,11 @@ class SysFactory
         self::$taskNumber = $taskNumber;
     }
 
+    public function getTaskNumber()
+    {
+        return self::$taskNumber;
+    }
+
     public function getTaskWorkerNumber()
     {
         return self::$taskNumber;
