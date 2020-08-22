@@ -6,7 +6,7 @@
  * Time: 上午9:49
  */
 
-namespace Pendant;
+namespace Pendant\MQTT;
 
 use Pendant\Common\MQTTProxyTool;
 use Pendant\ProtoInterface\MQTTProxy;

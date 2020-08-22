@@ -44,7 +44,10 @@ class MQTTProxyProtocolStruct
 {
     const Type = "type";
     //协议类型
-    const MQTT_proxy = 0;
+    const MQTT_PROXY = 0;
+
+    //协议类型
+    const DEVICE_CENTER_CLIENT = 1;
 
     public $type;
 
