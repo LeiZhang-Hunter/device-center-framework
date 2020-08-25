@@ -53,7 +53,7 @@ class MqttProxyProtocol implements ProtoServer
 
     //控制器
     /**
-     * @var MQTTProxy
+     * @var MQTTProxyHandle
      */
     private $controller;
 
@@ -81,9 +81,9 @@ class MqttProxyProtocol implements ProtoServer
         $worker_id = $args[1];
         $controller_collect = SysFactory::getInstance()->getServerController(self::protocol_type);
         $this->controller = $controller_collect[\Structural\System\ProtocolTypeStruct::MQTT_PROXY_PROTOCOL];
+        $deviceCenter = $this->controller->getDeviceCenterServer();
+        $this->deviceCenter = new $deviceCenter();
         $this->logger = SwooleSysSocket::getInstance()->getLogger();
-        $deviceCenterClass = $controller_collect[\Structural\System\DeviceCenterClientStruct::S_MQTT_CLIENT_CONTROLLER];
-        $this->deviceCenter = new $deviceCenterClass();
         //初始化任务进程，用来对业务套接字进行处理
         $this->deviceCenter->onTaskInit($server, $this->logger);
     }

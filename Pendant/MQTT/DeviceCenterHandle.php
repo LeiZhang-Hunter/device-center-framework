@@ -35,7 +35,6 @@ abstract class DeviceCenterHandle implements DeviceCenter
         }
         $this->task_worker_num = SysFactory::getInstance()->getTaskNumber();
         $this->server = $server;
-        //回调用户的设备中心的客户端处理
     }
 
     public function onTaskHandle($server, MQTTProxyProtocolStruct $protocol)
@@ -43,6 +42,7 @@ abstract class DeviceCenterHandle implements DeviceCenter
         if (!$protocol->client_id) {
             return false;
         }
+        $this->onReceive($protocol);
     }
 
     //进行任务派遣，算法采用散列表，链接地址法

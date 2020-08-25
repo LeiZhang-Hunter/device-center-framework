@@ -16,40 +16,17 @@ abstract class MQTTProxyHandle implements MQTTProxy
 {
     private static $server;
 
+    public $deviceCenterClass = "";
 
-    private static $pool = [];
 
-    public function regServer($server)
+    protected function regDeviceCenterServer($class)
     {
-        self::$server = $server;
+        return $this->deviceCenterClass = $class;
     }
 
-    //注册连接
-    public static function regConn($conn)
-    {
-        self::$pool[$conn] = $conn;
-    }
 
-    //取消注册连接
-    public static function unRegConn($conn)
+    public function getDeviceCenterServer()
     {
-        unset(self::$pool[$conn]);
-    }
-
-    //响应代理
-    public function randResponseProxy(MQTTProxyProtocolStruct $protocol)
-    {
-        $mTool = MQTTProxyTool::getInstance();
-        $data = $mTool->pack($protocol);
-        if (self::$pool) {
-            $key = array_rand(self::$pool);
-            if (self::$server) {
-                self::$server->send(self::$pool[$key], $data);
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
+        return $this->deviceCenterClass;
     }
 }
