@@ -82,7 +82,8 @@ class MqttProxyProtocol implements ProtoServer
         $controller_collect = SysFactory::getInstance()->getServerController(self::protocol_type);
         $this->controller = $controller_collect[\Structural\System\ProtocolTypeStruct::MQTT_PROXY_PROTOCOL];
         $this->logger = SwooleSysSocket::getInstance()->getLogger();
-        $this->deviceCenter = new DeviceCenterHandle();
+        $deviceCenterClass = $controller_collect[\Structural\System\DeviceCenterClientStruct::S_MQTT_CLIENT_CONTROLLER];
+        $this->deviceCenter = new $deviceCenterClass();
         //初始化任务进程，用来对业务套接字进行处理
         $this->deviceCenter->onTaskInit($server, $this->logger);
     }

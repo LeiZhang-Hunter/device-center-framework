@@ -8,11 +8,12 @@
 namespace Pendant\MQTT;
 
 use Library\Logger\Logger;
+use Pendant\ProtoInterface\DeviceCenter;
 use Pendant\SysFactory;
 use Structural\System\ConfigStruct;
 use Structural\System\MQTTProxyProtocolStruct;
 
-class DeviceCenterHandle
+abstract class DeviceCenterHandle implements DeviceCenter
 {
 
     private static $isInit = false;
@@ -34,11 +35,14 @@ class DeviceCenterHandle
         }
         $this->task_worker_num = SysFactory::getInstance()->getTaskNumber();
         $this->server = $server;
+        //回调用户的设备中心的客户端处理
     }
 
     public function onTaskHandle($server, MQTTProxyProtocolStruct $protocol)
     {
-
+        if (!$protocol->client_id) {
+            return false;
+        }
     }
 
     //进行任务派遣，算法采用散列表，链接地址法
