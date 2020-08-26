@@ -10,7 +10,7 @@ namespace Structural\System;
 
 use Pendant\CallEvent\TcpEvent;
 use Pendant\Protocol\Tcp\LogSentryProtocol;
-use Pendant\Protocol\Tcp\MqttProxyProtocol;
+use Pendant\Protocol\Tcp\MQTTProxyProtocol;
 use Pendant\Protocol\Tcp\TcpProtocol;
 use Pendant\ProtoInterface\ProtoServer;
 
@@ -30,7 +30,7 @@ class EventStruct
             self::Event => TcpEvent::class,
             self::Call => [
                 ProtocolTypeStruct::LOG_SENTRY_PROTOCOL => LogSentryProtocol::class,
-                ProtocolTypeStruct::MQTT_PROXY_PROTOCOL => MqttProxyProtocol::class
+                ProtocolTypeStruct::MQTT_PROXY_PROTOCOL => MQTTProxyProtocol::class
             ]
         ]
     ];

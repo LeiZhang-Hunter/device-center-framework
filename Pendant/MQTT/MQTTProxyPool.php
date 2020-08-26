@@ -29,7 +29,9 @@ class MQTTProxyPool
     //注册
     public function reg($fd)
     {
-        return $this->table->set($fd, [self::FD_KEY => $fd]);
+
+        $r = $this->table->set($fd, [self::FD_KEY => $fd]);
+        var_dump($r);
     }
 
     //获取代理描述符
@@ -39,6 +41,7 @@ class MQTTProxyPool
         $number = rand(0, $count);
         $i = 0;
         foreach ($this->table as $row) {
+            var_dump($row);
             $i++;
             if ($i == $number) {
                 break;
@@ -51,6 +54,9 @@ class MQTTProxyPool
     //解除注册
     public function unReg($fd)
     {
-        return $this->table->del($fd);
+        var_dump("del:".$fd);
+        if ($this->table->exist($fd)) {
+            $this->table->del($fd);
+        }
     }
 }

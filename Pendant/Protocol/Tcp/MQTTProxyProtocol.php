@@ -26,7 +26,7 @@ use Structural\System\MQTTProxyProtocolStruct;
 use Structural\System\OnEventTcpStruct;
 use Structural\System\SwooleProtocol;
 
-class MqttProxyProtocol implements ProtoServer
+class MQTTProxyProtocol implements ProtoServer
 {
 
     const protocol_type = SwooleProtocol::TCP_PROTOCOL;
@@ -70,10 +70,12 @@ class MqttProxyProtocol implements ProtoServer
      */
     private $deviceCenter;
 
+    private $proxyPool;
+
 
     public function __construct()
     {
-
+        $this->proxyPool = MQTTProxyPool::getInstance();
     }
 
 
@@ -239,15 +241,15 @@ class MqttProxyProtocol implements ProtoServer
                     break;
                 case MQTTProxyProtocolStruct::PROXY_CONNECT:
                     //将代理连接注册
-                    MQTTProxyPool::getInstance()->reg($fd);
+                    $this->proxyPool->reg($fd);
                     //发送反馈表示握手成功
-//                    $pack_protocol = new MQTTProxyProtocolStruct();
-//                    $pack_protocol->type = MQTTProxyProtocolStruct::MQTT_PROXY;
-//                    $pack_protocol->mqtt_type = MQTTProxyProtocolStruct::PROXY_CONNECT_MESSAGE;
-//                    $pack_protocol->client_id = "";
-//                    $pack_protocol->message_no = MQTTProxyProtocolStruct::RETURN_OK;
-//                    $pack_protocol->remain_length = 0;
-//                    $server->send($fd, MQTTProxyTool::getInstance()->pack($pack_protocol));
+                    $pack_protocol = new MQTTProxyProtocolStruct();
+                    $pack_protocol->type = MQTTProxyProtocolStruct::MQTT_PROXY;
+                    $pack_protocol->mqtt_type = MQTTProxyProtocolStruct::PROXY_CONNECT_MESSAGE;
+                    $pack_protocol->client_id = "";
+                    $pack_protocol->message_no = MQTTProxyProtocolStruct::RETURN_OK;
+                    $pack_protocol->remain_length = 0;
+                    $server->send($fd, MQTTProxyTool::getInstance()->pack($pack_protocol));
                     break;
             }
             $data = substr($data, $read_len);
@@ -284,6 +286,7 @@ class MqttProxyProtocol implements ProtoServer
         if (isset($this->buffer[$fd])) {
             unset($this->buffer[$fd]);
         }
+        MQTTProxyPool::getInstance()->unReg($fd);
     }
 
 }
