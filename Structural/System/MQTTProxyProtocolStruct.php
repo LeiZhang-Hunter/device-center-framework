@@ -61,8 +61,12 @@ class MQTTProxyProtocolStruct
 
     public $payload;
 
+
     //描述符,存放一个收到请求的描述符
     public $fd;
+
+    //错误码描述
+    const RETURN_OK = 0;
 
     const OnConnect = 0;
 
@@ -82,5 +86,9 @@ class MQTTProxyProtocolStruct
 
     const OnDISCONNECT = 8;
 
-    const OnPROXY_CONNECT = 9;
+    const DISCONNECT_MESSAGE = 9;
+
+    const PROXY_CONNECT = 10;
+
+    const PROXY_CONNECT_MESSAGE = 11;
 }

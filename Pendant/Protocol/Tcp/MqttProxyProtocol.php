@@ -11,9 +11,11 @@ namespace Pendant\Protocol\Tcp;
 
 use Library\Logger\Logger;
 use Pendant\Common\CRC16;
+use Pendant\Common\MQTTProxyTool;
 use Pendant\Common\Tool;
 use Pendant\MQTT\DeviceCenterHandle;
 use Pendant\MQTT\MQTTProxyHandle;
+use Pendant\MQTT\MQTTProxyPool;
 use Pendant\ProtoInterface\MQTTProxy;
 use Pendant\ProtoInterface\ProtoServer;
 use Pendant\SwooleSysSocket;
@@ -235,7 +237,17 @@ class MqttProxyProtocol implements ProtoServer
                 case MQTTProxyProtocolStruct::OnDISCONNECT:
                     $this->controller->onDisConnect($protocol);
                     break;
-                case MQTTProxyProtocolStruct::OnPROXY_CONNECT:
+                case MQTTProxyProtocolStruct::PROXY_CONNECT:
+                    //将代理连接注册
+                    MQTTProxyPool::getInstance()->reg($fd);
+                    //发送反馈表示握手成功
+//                    $pack_protocol = new MQTTProxyProtocolStruct();
+//                    $pack_protocol->type = MQTTProxyProtocolStruct::MQTT_PROXY;
+//                    $pack_protocol->mqtt_type = MQTTProxyProtocolStruct::PROXY_CONNECT_MESSAGE;
+//                    $pack_protocol->client_id = "";
+//                    $pack_protocol->message_no = MQTTProxyProtocolStruct::RETURN_OK;
+//                    $pack_protocol->remain_length = 0;
+//                    $server->send($fd, MQTTProxyTool::getInstance()->pack($pack_protocol));
                     break;
             }
             $data = substr($data, $read_len);
