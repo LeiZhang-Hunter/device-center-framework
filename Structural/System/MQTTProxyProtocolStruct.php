@@ -81,4 +81,6 @@ class MQTTProxyProtocolStruct
     const OnPublishMessage = 7;
 
     const OnDISCONNECT = 8;
+
+    const OnPROXY_CONNECT = 9;
 }

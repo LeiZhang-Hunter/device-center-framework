@@ -235,6 +235,8 @@ class MqttProxyProtocol implements ProtoServer
                 case MQTTProxyProtocolStruct::OnDISCONNECT:
                     $this->controller->onDisConnect($protocol);
                     break;
+                case MQTTProxyProtocolStruct::OnPROXY_CONNECT:
+                    break;
             }
             $data = substr($data, $read_len);
         }
