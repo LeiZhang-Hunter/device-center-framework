@@ -88,6 +88,8 @@ class MQTTProxyProtocol implements ProtoServer
         $deviceCenter = $this->controller->getDeviceCenterServer();
         $this->deviceCenter = new $deviceCenter();
         $this->logger = SwooleSysSocket::getInstance()->getLogger();
+        //注册到mqtt控制器方便处理
+        $this->controller->regDeviceCenterDispatch($this->deviceCenter);
         //初始化任务进程，用来对业务套接字进行处理
         $this->deviceCenter->onTaskInit($server, $this->logger);
     }

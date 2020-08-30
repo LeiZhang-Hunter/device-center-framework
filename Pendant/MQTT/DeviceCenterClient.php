@@ -57,7 +57,7 @@ class DeviceCenterClient
     }
 
     //对设备中心推送消息
-    public function publish($clientId, $topic, $message, $timeOut = 5)
+    public function publish($clientId , $message, $timeOut = 5)
     {
         $res = $this->socket->connect($this->ip, $this->port);
 
@@ -73,7 +73,6 @@ class DeviceCenterClient
         $protocol->client_id = $clientId;
         $protocol->message_no = 0;
         $protocol->payload = json_encode([
-            "topic" => $topic,
             "message_id" => $message_id,
             "qos_level" => $qos_level,
             "message" => $message
@@ -85,7 +84,21 @@ class DeviceCenterClient
             throw new \Exception($this->socket->errCode, socket_strerror($this->socket->errCode));
         }
 
-        $response = $this->socket->recv();
+        //可读事件
+        $write = $error = [];
+        $read = [$this->socket];
+        $n = swoole_client_select($read, $write, $error, $timeOut);
+        $response = false;
+        if ($n > 0)
+        {
+            foreach ($read as $index => $client)
+            {
+                $response = $this->socket->recv();
+            }
+        } else {
+            throw new \Exception($this->socket->errCode, socket_strerror($this->socket->errCode));
+        }
+
 
         return $response;
     }

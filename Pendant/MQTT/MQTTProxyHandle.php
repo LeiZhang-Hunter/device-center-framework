@@ -18,6 +18,11 @@ abstract class MQTTProxyHandle implements MQTTProxy
 
     public $deviceCenterClass = "";
 
+    /**
+     * @var DeviceCenterHandle
+     */
+    private $deviceCenterInstance;
+
 
     protected function regDeviceCenterServer($class)
     {
@@ -28,5 +33,23 @@ abstract class MQTTProxyHandle implements MQTTProxy
     public function getDeviceCenterServer()
     {
         return $this->deviceCenterClass;
+    }
+
+    /**
+     * 获取设备中心的派遣实例
+     * @return DeviceCenterHandle
+     */
+    public function getDeviceCenterDispatch()
+    {
+        return $this->deviceCenterInstance;
+    }
+
+    /**
+     * 获取设备中心的派遣实例
+     * @return DeviceCenterHandle
+     */
+    public function regDeviceCenterDispatch(DeviceCenterHandle $dispatcher)
+    {
+        $this->deviceCenterInstance = $dispatcher;
     }
 }

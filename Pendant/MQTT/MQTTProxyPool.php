@@ -41,20 +41,19 @@ class MQTTProxyPool
         $number = rand(0, $count);
         $i = 0;
         foreach ($this->table as $row) {
-            var_dump($row);
             $i++;
             if ($i == $number) {
                 break;
             }
         }
         var_dump($row);
+
         return $row[self::FD_KEY];
     }
 
     //解除注册
     public function unReg($fd)
     {
-        var_dump("del:".$fd);
         if ($this->table->exist($fd)) {
             $this->table->del($fd);
         }
