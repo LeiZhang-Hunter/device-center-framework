@@ -11,6 +11,7 @@ use Library\Logger\Logger;
 use Pendant\ProtoInterface\DeviceCenter;
 use Pendant\SysFactory;
 use Structural\System\ConfigStruct;
+use Structural\System\DeviceCenterClientStruct;
 use Structural\System\MQTTProxyProtocolStruct;
 
 abstract class DeviceCenterHandle implements DeviceCenter
@@ -27,6 +28,8 @@ abstract class DeviceCenterHandle implements DeviceCenter
      */
     private $server;
 
+    private $clientPool = [];
+
     //初始化任务进程
     public function onTaskInit($server, Logger $logger)
     {
@@ -42,11 +45,16 @@ abstract class DeviceCenterHandle implements DeviceCenter
         if (!$protocol->client_id) {
             return false;
         }
-        $this->onReceive($protocol);
+        if ($protocol->type == DeviceCenterClientStruct::OnClientReceive) {
+            $this->onReceive($protocol);
+        } else if ($protocol->type == DeviceCenterClientStruct::OnClientClose) {
+            $this->onClose($protocol);
+        }
     }
 
     //进行任务派遣，算法采用散列表，链接地址法
-    public function dispatcher(MQTTProxyProtocolStruct $protocol) {
+    public function dispatcher(MQTTProxyProtocolStruct $protocol)
+    {
         $clientId = $protocol->client_id;
 
         if (!$this->task_worker_num) {
@@ -64,17 +72,37 @@ abstract class DeviceCenterHandle implements DeviceCenter
         if (is_string($clientId)) {
             $len = strlen($clientId);
             $hash_value = 0;
-            for ($i=0; $i<$len; $i++) {
+            for ($i = 0; $i < $len; $i++) {
                 $hash_value += ord($clientId[$i]);
             }
 
+            $protocol->type =
+
             $dispatcher_process_id = $hash_value % $this->task_worker_num;
             $dispatcher_process_id += $this->worker_num;
+            $this->clientPool[$protocol->fd] = $clientId;
             $this->server->sendMessage($protocol, $dispatcher_process_id);
 
             return true;
         } else {
             return false;
+        }
+    }
+
+    /**
+     * 关闭设备中心的业务套接字
+     * @param $fd
+     */
+    public function close($fd)
+    {
+        if (isset($this->clientPool[$fd])) {
+            $protocol = new MQTTProxyProtocolStruct();
+            $protocol->fd = $fd;
+            $protocol->mqtt_type = MQTTProxyProtocolStruct::DEVICE_CENTER_CLIENT;
+            $protocol->type = DeviceCenterClientStruct::OnClientClose;
+            $protocol->payload["token"] = $this->clientPool[$fd];
+            unset($this->clientPool[$fd]);
+            $this->server->sendMessage($protocol);
         }
     }
 }

@@ -21,6 +21,7 @@ use Pendant\ProtoInterface\ProtoServer;
 use Pendant\SwooleSysSocket;
 use Pendant\SysFactory;
 use Structural\System\ConfigStruct;
+use Structural\System\DeviceCenterClientStruct;
 use Structural\System\EventStruct;
 use Structural\System\MQTTProxyProtocolStruct;
 use Structural\System\OnEventTcpStruct;
@@ -216,7 +217,10 @@ class MQTTProxyProtocol implements ProtoServer
 
             if ($protocol->type == MQTTProxyProtocolStruct::DEVICE_CENTER_CLIENT) {
                 $protocol->fd = $fd;
-                $this->deviceCenter->dispatcher($protocol);
+                $protocol->type = DeviceCenterClientStruct::OnClientReceive;
+                if (!$this->deviceCenter->dispatcher($protocol)) {
+                    $server->close($fd);
+                }
                 continue;
             }
 
@@ -248,6 +252,17 @@ class MQTTProxyProtocol implements ProtoServer
                     $pack_protocol = new MQTTProxyProtocolStruct();
                     $pack_protocol->type = MQTTProxyProtocolStruct::MQTT_PROXY;
                     $pack_protocol->mqtt_type = MQTTProxyProtocolStruct::PROXY_CONNECT_MESSAGE;
+                    $pack_protocol->client_id = "";
+                    $pack_protocol->message_no = MQTTProxyProtocolStruct::RETURN_OK;
+                    $pack_protocol->remain_length = 0;
+                    $server->send($fd, MQTTProxyTool::getInstance()->pack($pack_protocol));
+                    break;
+
+                case MQTTProxyProtocolStruct::PROXY_PINGREQ:
+                    //心跳包反馈，表示收到了心跳包
+                    $pack_protocol = new MQTTProxyProtocolStruct();
+                    $pack_protocol->type = MQTTProxyProtocolStruct::MQTT_PROXY;
+                    $pack_protocol->mqtt_type = MQTTProxyProtocolStruct::PROXY_PINGRESP;
                     $pack_protocol->client_id = "";
                     $pack_protocol->message_no = MQTTProxyProtocolStruct::RETURN_OK;
                     $pack_protocol->remain_length = 0;
@@ -289,6 +304,8 @@ class MQTTProxyProtocol implements ProtoServer
             unset($this->buffer[$fd]);
         }
         MQTTProxyPool::getInstance()->unReg($fd);
+
+        $this->deviceCenter->close($fd);
     }
 
 }

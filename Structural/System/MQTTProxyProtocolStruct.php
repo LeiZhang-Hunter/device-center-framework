@@ -91,4 +91,8 @@ class MQTTProxyProtocolStruct
     const PROXY_CONNECT = 10;
 
     const PROXY_CONNECT_MESSAGE = 11;
+
+    const PROXY_PINGREQ = 12;
+
+    const PROXY_PINGRESP = 13;
 }

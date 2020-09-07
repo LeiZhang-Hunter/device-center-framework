@@ -10,5 +10,5 @@ interface DeviceCenter
 
     public function onReceive(MQTTProxyProtocolStruct $protocol);
 
-    public function onClose();
+    public function onClose(MQTTProxyProtocolStruct $protocol);
 }

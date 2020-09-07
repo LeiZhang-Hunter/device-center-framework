@@ -56,6 +56,9 @@ class MQTTProxyPool
     {
         if ($this->table->exist($fd)) {
             $this->table->del($fd);
+            return true;
+        } else {
+            return false;
         }
     }
 }
