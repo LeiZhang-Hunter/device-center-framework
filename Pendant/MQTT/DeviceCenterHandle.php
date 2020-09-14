@@ -76,8 +76,6 @@ abstract class DeviceCenterHandle implements DeviceCenter
                 $hash_value += ord($clientId[$i]);
             }
 
-            $protocol->type =
-
             $dispatcher_process_id = $hash_value % $this->task_worker_num;
             $dispatcher_process_id += $this->worker_num;
             $this->clientPool[$protocol->fd] = $clientId;
@@ -100,9 +98,10 @@ abstract class DeviceCenterHandle implements DeviceCenter
             $protocol->fd = $fd;
             $protocol->mqtt_type = MQTTProxyProtocolStruct::DEVICE_CENTER_CLIENT;
             $protocol->type = DeviceCenterClientStruct::OnClientClose;
+            $protocol->client_id = $this->clientPool[$fd];
             $protocol->payload["token"] = $this->clientPool[$fd];
             unset($this->clientPool[$fd]);
-            $this->server->sendMessage($protocol);
+            $this->dispatcher($protocol);
         }
     }
 }
