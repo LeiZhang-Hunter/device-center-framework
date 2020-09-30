@@ -64,7 +64,7 @@ class DeviceCenterClient
         $this->connected = $this->socket->connect($this->ip, $this->port);
 
         if (!$this->connected) {
-            throw new \Exception($this->socket->errCode, socket_strerror($this->socket->errCode));
+            throw new \Exception($this->socket->errCode, swoole_strerror($this->socket->errCode));
         }
 
         $protocol = new MQTTProxyProtocolStruct();
