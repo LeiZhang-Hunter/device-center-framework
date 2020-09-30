@@ -61,6 +61,18 @@ class DeviceCenterClient
     //对设备中心推送消息
     public function publish($clientId , $message, $timeOut = 5)
     {
+        if (!$clientId) {
+            throw new \Exception("Client id cannot be empty");
+        }
+
+        if (!$message) {
+            throw new \Exception("Message cannot be empty");
+        }
+
+        if (is_array($message) || is_object($message)) {
+            $message = json_encode($message);
+        }
+
         $this->connected = $this->socket->connect($this->ip, $this->port);
 
         if (!$this->connected) {
