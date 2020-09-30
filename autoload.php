@@ -7,7 +7,9 @@
  * Time: 14:51
  */
 //定义常量
-define("__ROOT__", __DIR__);
+if (!defined("__ROOT__")) {
+    define("__ROOT__", __DIR__);
+}
 
 include_once "Pendant/NameSpaceClass.php";
 

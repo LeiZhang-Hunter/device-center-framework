@@ -19,6 +19,8 @@ class DeviceCenterClient
 
     private $qosLevel = 0;
 
+    private $connected;
+
     /**
      * @var MQTTProxyTool
      */
@@ -59,9 +61,9 @@ class DeviceCenterClient
     //对设备中心推送消息
     public function publish($clientId , $message, $timeOut = 5)
     {
-        $res = $this->socket->connect($this->ip, $this->port);
+        $this->connected = $this->socket->connect($this->ip, $this->port);
 
-        if (!$res) {
+        if (!$this->connected) {
             throw new \Exception($this->socket->errCode, socket_strerror($this->socket->errCode));
         }
 
@@ -105,6 +107,7 @@ class DeviceCenterClient
 
     public function __destruct()
     {
-        $this->socket->close(true);
+        if ($this->connected)
+            $this->socket->close(true);
     }
 }

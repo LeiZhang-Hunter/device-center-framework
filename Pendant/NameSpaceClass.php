@@ -22,7 +22,7 @@ class NameSpaceClass
             $collect = explode("\\", $var);
             $namespace = array_shift($collect);
             if (isset(self::$namespace[$namespace])) {
-                $dir = (self::$namespace[$namespace] . "/" . implode("\\", $collect) . ".php");
+                $dir = realpath(self::$namespace[$namespace] . "/" . implode("/", $collect) . ".php");
                 if (is_file($dir)) {
                     include_once $dir;
                 }
