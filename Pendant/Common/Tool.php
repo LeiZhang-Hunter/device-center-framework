@@ -24,16 +24,22 @@ class Tool
     }
 
     //解析字节，将字节变为长度
-    public static function remainLengthDecode($data)
+    public static function remainLengthDecode($buffer, &$head_bytes)
     {
-        $data = unpack("C", $data)[1];
         $multiplier = 1;
+        $head_bytes = 0;
         $value = 0;
         do {
-            $value += ($data and 127) * $multiplier;
+            if (!isset($buffer[$head_bytes])) {
+                $head_bytes = 0;
+                return 0;
+            }
+            $digit = ord($buffer[$head_bytes]);
+            $value += ($digit & 127) * $multiplier;
             $multiplier *= 128;
-        } while (($data & 128) != 0);
-        return $data;
+            $head_bytes++;
+        } while (($digit & 128) != 0);
+        return $value;
     }
 
     //压缩字节，将字节变为长度
@@ -42,12 +48,11 @@ class Tool
         $data = "";
         do {
             $digit = $length % 128;
-            $length = intval($length / 128);
+            $length = $length >> 7;
             if ($length > 0) {
                 $digit = $digit | 0x80;
             }
-
-            $data .= pack("C", $digit);
+            $data .= chr($digit);
         } while ($length > 0);
 
         return $data;
@@ -60,6 +65,22 @@ class Tool
         $length = strlen($command);
         for ($i = 0; $i < $length; $i++) {
             $str .= ("0x" . dechex(ord((($command[$i])))) . " ");
+        }
+        echo $str . "\n";
+        return $str;
+    }
+
+    public static function printCommandChr($command)
+    {
+        $str = '';
+        $length = strlen($command);
+        for ($i = 0; $i < $length; $i++) {
+            $code = ord(((($command[$i]))));
+            if (!$code) {
+                $str .= (($code) . " ");
+            } else {
+                $str .= hexdec(chr($code) . " ");
+            }
         }
         echo $str . "\n";
         return $str;

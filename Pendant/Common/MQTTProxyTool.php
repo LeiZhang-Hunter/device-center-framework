@@ -38,12 +38,20 @@ class MQTTProxyTool
         $data .= pack("C", $protocol->type);
         $data .= pack("C", $protocol->mqtt_type);
         $data .= pack("C", $protocol->message_no);
-        $data_len = Tool::remainLengthEncode(strlen($protocol->client_id));
+        $client_id_length = strlen($protocol->client_id);
+        $data_len = pack("N", $client_id_length);
         $data .= $data_len;
 
-        $data .= $protocol->client_id;
-        $payload_len = Tool::remainLengthEncode(strlen($protocol->payload));
+        if ($protocol->payload && is_array($protocol->payload)) {
+            $protocol->payload = json_encode($protocol->payload);
+        }
 
+        $data .= $protocol->client_id;
+        $payload_len = strlen($protocol->payload);
+        var_dump($payload_len);
+        $payload_len = Tool::remainLengthEncode($payload_len);
+        $r = Tool::remainLengthDecode($payload_len, $byte);
+        var_dump($r);
         $data .= $payload_len;
         $data .= $protocol->payload;
         $data .= CRC16::CheckCRC16($data);

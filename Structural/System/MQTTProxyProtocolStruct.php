@@ -57,6 +57,8 @@ class MQTTProxyProtocolStruct
 
     public $remain_length;
 
+    public $client_id_length;
+
     public $client_id;
 
     public $payload;

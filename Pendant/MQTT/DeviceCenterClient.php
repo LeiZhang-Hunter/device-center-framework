@@ -91,6 +91,7 @@ class DeviceCenterClient
             "qos_level" => $qos_level,
             "message" => $message
         ]);
+        var_dump($protocol->payload);
 
         $res = $this->socket->send($this->tool->pack($protocol));
 

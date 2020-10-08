@@ -158,10 +158,24 @@ class MQTTProxyProtocol implements ProtoServer
             $leftLen -= 1;
             $read_len += 1;
 
+            //计算长度
+            $protocol->client_id_length = unpack("N", substr($data, 3, 4))[1];
+            $leftLen -= 4;
+            $read_len += 4;
+
+            //获取到客户端id
+            $protocol->client_id = substr($data, 7, $protocol->client_id_length);
+            $leftLen -= $protocol->client_id_length;
+            $read_len += $protocol->client_id_length;
+
+            $payload_len_position = 7 + $protocol->client_id_length;
+
             //解析载荷的长度，算法跟mqtt中的算法一致
-            $remain_length = Tool::remainLengthDecode($data[3]);
-            $leftLen -= 1;
-            $read_len += 1;
+            $remain_length = Tool::remainLengthDecode(substr($data, $payload_len_position),
+                $remain_offset);
+            var_dump($remain_length);
+            $leftLen -= $remain_offset;
+            $read_len += $remain_offset;
 
             //校验client_id 长度的合法性 半包或者是一个错误的包,继续放入缓冲区中，当超过一定长度之后直接清空掉
             if ($remain_length > $leftLen) {
@@ -173,29 +187,12 @@ class MQTTProxyProtocol implements ProtoServer
                 return false;
             }
 
-            //获取到客户端id
-            $protocol->client_id = substr($data, 4, $remain_length);
+            $protocol->remain_length = $remain_length;
+            $payload_position = $payload_len_position + $remain_offset;
+            $payload = json_decode(substr($data, $payload_position, $remain_length), 1);
+            $protocol->payload = $payload;
             $leftLen -= $remain_length;
             $read_len += $remain_length;
-
-            $payload_len = unpack("C", $data[4 + $remain_length])[1];
-            //半包或者是错误的包
-            if ($payload_len > $leftLen) {
-                $this->buffer[$fd] = substr($data, 0, $leftLen);
-                $this->logger->trace(Logger::LOG_WARING, self::class, "bindReceive",
-                    "[" . self::class . "->" . "bindReceive" . "] client id payload_length($payload_len) > leftLen($leftLen);file:"
-                    . __FILE__ . "line:" .
-                    __LINE__);
-                return false;
-            }
-            $leftLen -= 1;
-            $read_len += 1;
-
-            $protocol->remain_length = $payload_len;
-            $payload = json_decode(substr($data, 4 + $remain_length + 1, $payload_len), 1);
-            $protocol->payload = $payload;
-            $leftLen -= $payload_len;
-            $read_len += $payload_len;
 
             //校验CRC
             $protocol->fd = $fd;
